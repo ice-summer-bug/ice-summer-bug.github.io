@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="flink,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="apache flink 基本概念介绍">
+<meta name="keywords" content="flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink 基本概念入门">
+<meta property="og:url" content="https://summerbuger.github.io/2018/11/19/技术/flink/flink基本概念入门/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="apache flink 基本概念介绍">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.452Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flink 基本概念入门">
+<meta name="twitter:description" content="apache flink 基本概念介绍">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2018/11/19/技术/flink/flink基本概念入门/">
+
+
+
+
+
+  <title>Flink 基本概念入门 | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2018/11/19/技术/flink/flink基本概念入门/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Flink 基本概念入门</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-11-19T22:00:00+08:00">
+                2018-11-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/flink/" itemprop="url" rel="index">
+                    <span itemprop="name">flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  apache flink 基本概念介绍
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Flink-基本概念"><a href="#Flink-基本概念" class="headerlink" title="Flink 基本概念"></a>Flink 基本概念</h1><h2 id="基本名词"><a href="#基本名词" class="headerlink" title="基本名词"></a>基本名词</h2><h3 id="Job"><a href="#Job" class="headerlink" title="Job"></a><code>Job</code></h3><p>以 <code>jar</code> 包的形式在 <code>flink</code> 中提交的可运行程序</p>
+<h3 id="task"><a href="#task" class="headerlink" title="task"></a><code>task</code></h3><h3 id="stream"><a href="#stream" class="headerlink" title="stream"></a><code>stream</code></h3><p><code>flink</code> 作为一个流数据处理的引擎，就是针对一个或多个 <code>stream</code> 进行流计算处理，再输出到一个或多个 <code>stream</code> 中去，这里的 <code>stream</code> 可以使 mq，也可以是文件、也可以直接是控制台输入\输出。</p>
+<h3 id="operator-amp-amp-task"><a href="#operator-amp-amp-task" class="headerlink" title="operator &amp;&amp; task"></a><code>operator</code> &amp;&amp; <code>task</code></h3><p><code>flink</code> 流处理流程中的每个操作(如 <code>map</code>, <code>keyBy</code>, <code>sink</code>, <code>source</code>等)都是 <code>operator</code></p>
+<h3 id="operator-subtask"><a href="#operator-subtask" class="headerlink" title="operator subtask"></a><code>operator subtask</code></h3><p>每个 <code>operator</code> 可以分成多个 <code>operator subtask</code>，一个 <code>operator</code> 的并行度就是 <code>operator subtask</code> 的数量</p>
+<h3 id="operator-chain"><a href="#operator-chain" class="headerlink" title="operator chain"></a><code>operator chain</code></h3><p><code>flink</code> 作为分布式运行系统，会将多个 <code>operator subtask</code> 关联成一个 <code>operator task</code>，这个过程就是 <code>operator chain</code>。</p>
+<p>两个 <code>operator subtask</code> 能否关联起来，需要满足下列要求</p>
+<ol>
+<li>上下游的并行度一致</li>
+<li>下游节点的入度为1 （也就是说下游节点没有来自其他节点的输入）</li>
+<li>上下游节点都在同一个 slot group 中（下面会解释 slot group）</li>
+<li>下游节点的 chain 策略为 ALWAYS（可以与上下游链接，map、flatmap、filter等默认是ALWAYS）</li>
+<li>上游节点的 chain 策略为 ALWAYS 或 HEAD（只能与下游链接，不能与上游链接，Source默认是HEAD）</li>
+<li>两个节点间数据分区方式是 forward（参考理解数据流的分区）<br>用户没有禁用 chain</li>
+</ol>
+<h2 id="分布式运行时环境"><a href="#分布式运行时环境" class="headerlink" title="分布式运行时环境"></a>分布式运行时环境</h2><h3 id="JobManager"><a href="#JobManager" class="headerlink" title="JobManager"></a><code>JobManager</code></h3><p><code>flink</code> 集群服务的 master 节点，用来协调分布式计算，负责进行任务调度，协调 checkpoints，协调错误恢复等等。一个集群中至少有一个 <code>JobManager</code>，如果有多个 <code>JobManager</code>，其中一个作为 <code>leader</code>，其余处于备用的状态。</p>
+<h3 id="TaskManager"><a href="#TaskManager" class="headerlink" title="TaskManager"></a><code>TaskManager</code></h3><p><code>flink</code> 集群的 worker 节点，真正执行 dataflow 中的 tasks，并且对 streams 进行缓存和交换，集群中至少需要一个 <code>TaskManager</code>，每个 <code>TaskManager</code> 是一个 JVM 进程。</p>
+<h3 id="Clients"><a href="#Clients" class="headerlink" title="Clients"></a><code>Clients</code></h3><p>连接 <code>flink 集群</code> 的客户端，向 <code>flink 集群</code> 提交计算任务</p>
+<h3 id="Task-Slots"><a href="#Task-Slots" class="headerlink" title="Task Slots"></a><code>Task Slots</code></h3><p>每个 <code>TaskManager</code> 都是一个 JVM 进程，可以在不同的线程运行一个或多个线程，每个 <code>TaskManager</code> 通过 <code>Task Slots</code> 来控制可以接收多少个tasks。<br>每个 <code>Task Slots</code> 代表 <code>TaskManager</code> 中一个固定的资源子集，如果 1 个 <code>TaskManager</code> 有 3 个 <code>Task Slots</code>，它会将他的内存资源划分为 3 份分配给每个 slot。<br>通过调整 <code>Task Slots</code> 的数量而调整 subtasks 之间的隔离方式。当每个 <code>TaskManager</code> 只有一个 <code>Task Slot</code> 的时候，意味着每个 <code>task group</code> 运行在独立的的JVM 中。当一个 <code>TaskManager</code> 有多个 <code>slot</code> 的时候，意味着多个 在同一 JVM 进程中的 task 将共享 TCP 链接和心跳信息，他们也能共享。</p>
+<p>DateStream API</p>
+<p><code>source</code>: 数据来源</p>
+<p><code>sink</code>: 处理结果输出</p>
+<p><code>window</code>: 窗口</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/flink/" rel="tag"># flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/19/技术/flink/yarn集群维护问题汇总/" rel="next" title="yarn 集群日常问题汇总">
+                <i class="fa fa-chevron-left"></i> yarn 集群日常问题汇总
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/19/技术/flink/Flink-DateStream-API-Desc/" rel="prev" title="Flink DateStream API">
+                Flink DateStream API <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink-基本概念"><span class="nav-number">1.</span> <span class="nav-text">Flink 基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本名词"><span class="nav-number">1.1.</span> <span class="nav-text">基本名词</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Job"><span class="nav-number">1.1.1.</span> <span class="nav-text">Job</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#task"><span class="nav-number">1.1.2.</span> <span class="nav-text">task</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stream"><span class="nav-number">1.1.3.</span> <span class="nav-text">stream</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#operator-amp-amp-task"><span class="nav-number">1.1.4.</span> <span class="nav-text">operator &amp;&amp; task</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#operator-subtask"><span class="nav-number">1.1.5.</span> <span class="nav-text">operator subtask</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#operator-chain"><span class="nav-number">1.1.6.</span> <span class="nav-text">operator chain</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式运行时环境"><span class="nav-number">1.2.</span> <span class="nav-text">分布式运行时环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JobManager"><span class="nav-number">1.2.1.</span> <span class="nav-text">JobManager</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TaskManager"><span class="nav-number">1.2.2.</span> <span class="nav-text">TaskManager</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Clients"><span class="nav-number">1.2.3.</span> <span class="nav-text">Clients</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Task-Slots"><span class="nav-number">1.2.4.</span> <span class="nav-text">Task Slots</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

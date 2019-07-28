@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="flink,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="apache flink 的">
+<meta name="keywords" content="flink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flink 探究之路 ———— 容错机制，Checkpoint 和 Savepoint">
+<meta property="og:url" content="https://summerbuger.github.io/2019/01/26/技术/flink/flink之savepoints和checkpoints/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="apache flink 的">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://segmentfault.com/img/remote/1460000008129555">
+<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.7/fig/stream_aligning.svg">
+<meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.7/fig/checkpointing.svg">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.451Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flink 探究之路 ———— 容错机制，Checkpoint 和 Savepoint">
+<meta name="twitter:description" content="apache flink 的">
+<meta name="twitter:image" content="https://segmentfault.com/img/remote/1460000008129555">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2019/01/26/技术/flink/flink之savepoints和checkpoints/">
+
+
+
+
+
+  <title>Flink 探究之路 ———— 容错机制，Checkpoint 和 Savepoint | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2019/01/26/技术/flink/flink之savepoints和checkpoints/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Flink 探究之路 ———— 容错机制，Checkpoint 和 Savepoint</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-26T09:00:00+08:00">
+                2019-01-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/flink/" itemprop="url" rel="index">
+                    <span itemprop="name">flink</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  apache flink 的
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Flink-的容错机制"><a href="#Flink-的容错机制" class="headerlink" title="Flink 的容错机制"></a>Flink 的容错机制</h1><p><code>Flink</code> 最吸引使用者的地方就是它提供的容错机制保证数据流应用程序的<code>状态</code>的持续性恢复。<code>Flink</code> 保证即使在失败的情况下，数据流中的每一条数据最终也能确保只会对状态数据响应一次（<code>exactly once</code>）。<code>响应一次</code> 的机制可以手动降级到 <code>至少响应一次</code>(<code>at least once</code>)。</p>
+<p><code>容错机制</code> 对分布式流式数据持续性的产生<code>快照</code>(<code>snapshot</code>)并存储。对于持有小型数据状态的数据流应用来说，产生 <code>快照</code> 的过程是很轻量级的，对于数据流的正常处理过程的影响微乎其微。数据流应用的 <code>状态</code> 数据可以存储到一个可配置的环境(<code>Master</code>节点中，或者 <code>HDFS</code> 中）。</p>
+<p>当程序失败（机器、网络或者软件故障）的时候，<code>Flink</code> 将停止分布式数据流应用。然后再从最后一次成功的 <code>checkpoint</code> 中保存的 <code>状态</code>(<code>state</code>) 数据中恢复应用的所有 <code>算子</code>（<code>Operator</code>）。输入数据也被重置到最后一次成功的<code>快照</code>数据中保存的位置 。 <code>Flink</code> 保证并行数据流在重启之后处理的所有数据都不会是最近一次成功的 <code>checkpoint</code> 之前的数据。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">注意：</span><br><span class="line">1. `checkpointing` 功能默认是关闭的，需要手动配置，指定开启 `checkpointing`</span><br><span class="line">2. 在 `Flink` 完成保证的基础上，数据流输入源 (`streaming source`)需要保障能回退到指定的最近一个位置。</span><br></pre></td></tr></table></figure>
+
+<h1 id="Checkpointing"><a href="#Checkpointing" class="headerlink" title="Checkpointing"></a><code>Checkpointing</code></h1><p><code>Flink</code> 的 <code>容错机制</code> 简而言之就是持续不断的对 <code>分布式数据流</code> 和 <code>算子状态(Operator state)</code> 产生 <code>一致性</code> 的 <code>快照</code> 数据。这些 <code>快照</code> 数据系统遇到故障时，用于从错误状态中恢复的 <code>检查点</code> (<code>checkpoints</code>)。 <code>Flink</code> 产生 <code>快照</code> 数据的机制的详细描述如下： <a href="http://arxiv.org/abs/1506.08603" title="Lightweight Asynchronous Snapshots for Distributed Dataflows" target="_blank" rel="noopener">Lightweight Asynchronous Snapshots for Distributed Dataflows</a>，该算法是在参考 <a href="http://research.microsoft.com/en-us/um/people/lamport/pubs/chandy.pdf" title="Chandy-Lamport algorithm" target="_blank" rel="noopener">Chandy-Lamport algorithm</a> 算法的基础上进行改进的，并针对 <code>Flink 执行模型</code> 进行量身定做。</p>
+<h2 id="Barriers-栅栏"><a href="#Barriers-栅栏" class="headerlink" title="Barriers (栅栏)"></a><code>Barriers</code> (<code>栅栏</code>)</h2><p><code>Flink</code> 的分布式快照的核心组成部分就是 <code>Barriers(栅栏)</code>，这些 <code>Barriers(栅栏)</code> 被插入到数据流中，和数据一起往下流。<code>Barriers(栅栏)</code> 不会影响数据流中数据的顺序，数据流保证严格有序。<code>Barriers(栅栏)</code> 将数据切分成两部分，前一部分的数据进入当前的快照数据(<code>snapshot</code>)中，后一部分的数据进入下一快照数据。每个 <code>Barriers(栅栏)</code> 都有一个 <code>ID</code>，这个 <code>ID</code> 就是 <code>Barriers(栅栏)</code> 前一个 <code>snapshot</code> 的 <code>ID</code>。<code>Barriers(栅栏)</code> 不会影响数据流的处理，所以非常轻量级。多个不同 <code>快照</code> 的多个 <code>Barriers(栅栏)</code> 可以在数据流中同时存在，即多个 <code>快照</code> 可以同时创建。</p>
+<p><strong><em>问题：数据流中的数据也会进入 <code>快照</code> ？？？不应该是只包含状态数据吗？</em></strong></p>
+<p><img src="https://segmentfault.com/img/remote/1460000008129555" alt="Barriers" title="Barriers"></p>
+<p><code>Barriers(栅栏)</code> 被插入到 <code>数据源</code>的并行数据流中。为快照 <code>n</code> 产生的 <code>Barriers</code> 注入的位置 S<sub>n</sub> 就是在源数据中包含这些快照数据的位置。例如，在 <code>Apache Kafka</code> 中这个位置就是在分区(<code>partition</code>) 中最后一条已消费数据的偏移位置。 这个位置 S<sub>n</sub> 将被上报给检查点协调器(<code>checkpoint coordinator</code>)，也就是 Flink 的 <code>Job Manager</code>。</p>
+<p>然后 <code>Barriers(栅栏)</code> 流向下游数据流，当中间的<code>算子(Operator)</code> 从所有的上游输入流都接收到了 <code>快照 n</code> 的 <code>栅栏</code> 之后，向所有下游算子下发 <code>快照 n</code> 的 <code>栅栏</code>。当 <code>输出算子(sink operator)</code> （flink 有向无环图[DAG] 的尾节点）从它的所有上游输入流都接收到了 <code>快照 n</code> 的 <code>栅栏</code> 之后会检查点协调器发起 ACK 确认已接收到 <code>快照 n</code>。当所有的 <code>输出算子(sink operator)</code> 都发出了ACK 确认之后，<code>快照 n</code> 的数据被认为已经被处理完成了。</p>
+<p>当 <code>快照 n</code> 已经被确认处理完成了，当前任务不会再向输入流请求获取 <code>快照 n</code> 之前的数据，因此这些数据将已经完成通过真个拓扑数据流。</p>
+<p><img src="https://ci.apache.org/projects/flink/flink-docs-release-1.7/fig/stream_aligning.svg" alt title="stream barriers aligning"></p>
+<p>接收多个输入流的算子需要在快照的栅栏上对齐输入流，上图描述了如下特性：</p>
+<ul>
+<li><p>当算子接收到其中一个上游输入流的 <code>快照 n</code> 的栅栏的时候，算子不会处理这个栅栏之后的任何数据，直到它从剩下的所有输入流都接收到 <code>快照 n</code> 的栅栏。否则  <code>快照 n</code> 和  <code>快照 n+1</code> 的数据将被混合在一起。</p>
+</li>
+<li><p>数据流向检查点协调器报告栅栏的时候会被缓存并搁置，这个数据流的数据不会被处理，而是放置到输入缓存中。</p>
+</li>
+<li><p>一旦从最后一个流收到了<code>barrier n</code>，这个算子会发送所有积压的记录（个人注：将barrier之前的数据都发送出去），然后发送快照n的barrier。</p>
+</li>
+<li><p>然后，它继续处理从所有输入流中的数据，先处理输入缓存中的数据，然后处理流中的数据。</p>
+</li>
+</ul>
+<h2 id="状态-State"><a href="#状态-State" class="headerlink" title="状态 State"></a>状态 <code>State</code></h2><p>如果一个算子包含<code>状态</code>，那这个<code>状态</code>数据一定是 <code>快照</code> 的一部分，算子状态有不停的形式：</p>
+<ul>
+<li><p><code>自定义状态</code>：通过转化函数（如 <code>map()</code> 或 <code>filter()</code>）来创建和修改状态数据，详见 <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.7/dev/stream/state/index.html" title="State in Streaming Applications" target="_blank" rel="noopener">State in Streaming Applications</a></p>
+</li>
+<li><p><code>系统状态</code>：这种状态时指的是算子计算过程中的一部分缓存数据。典型的例子就是 <code>窗口缓存</code>，系统收集窗口对应的数据到缓存，直到窗口计算或者发射。</p>
+</li>
+</ul>
+<p>算子在接收到所有上游输入流的栅栏之后，在向所有输出流发射栅栏之前对状态数据进行快照。此时栅栏之前的数据对状态的更改已经生效，并且栅栏之后的数据对状态的修改不会发生。由于快照的状态的数据可能会比较大，它可以存储到一个可配置的状态后端存储系统中。默认状态下，状态数据存储在 <code>JobManager</code> 的内存中，但是在生产环境还是需要配置成一个 <code>可靠</code> 的分布式存储系统（例如 <code>HDFS</code>）. 状态被存储之后，算子会确认其检查点完成，将 <code>快照</code> 的 <code>栅栏</code> 的数据发送给下游。</p>
+<p>现在我们可以看一下 <code>快照</code> 中包含的数据。</p>
+<ul>
+<li>对于并行的输入数据源，快照建立时数据流的偏移位置。</li>
+<li>对于算子，快照包含了一个指向装填实际存储位置的指针。</li>
+</ul>
+<p><img src="https://ci.apache.org/projects/flink/flink-docs-release-1.7/fig/checkpointing.svg" alt title="checkpointing"></p>
+<h2 id="Exactly-Once-vs-At-Least-Once-只响应一次还是还是至少响应一次"><a href="#Exactly-Once-vs-At-Least-Once-只响应一次还是还是至少响应一次" class="headerlink" title="Exactly Once vs. At Least Once 只响应一次还是还是至少响应一次"></a>Exactly Once vs. At Least Once 只响应一次还是还是至少响应一次</h2><p>对齐操作可能会增大数据流应用的延时，一般来说，对齐产生的额外延时只有几毫秒的数量级，但是我们也发现过延迟显著增加的异常情况。对于要求延时非常低（几毫秒）的数据流应用，flink 提供在产生检查点的时候关闭对齐的开关。如果关闭对齐步骤，算子会在接收到一个上游的栅栏的时候就会产生一个快照，而不是等到其他上游的栅栏都到齐了再来生成快照。</p>
+<p>当对齐被关闭的时候，算子在收到栅栏的时候也会持续的处理输入数据。也就是说：算子在会在产生 <code>检查点 n</code> 的时候，会处理属于 <code>检查点 n+1</code> 的数据。所以当故障恢复的时候，这部分数据会被重复处理，因为这些数据都属于 <code>检查点 n</code> 的快照数据，同时在 <code>检查点 n</code> 之后也会被回放而被再次处理。</p>
+<pre><code>注意：
+对齐操作只会发生在多输入运算（join）或者多输出的算子（例如重分区，分流）的场景下。
+因此，对于普通的并行数据流操作（`map()`, `flatMap()`, fliter() 等），
+及时在 `至少响应一次（at least once）` 的模式下，也会保证 `只响应一次（exactly once）`</code></pre><h2 id="Asynchronous-State-Snapshots-异步状态快照"><a href="#Asynchronous-State-Snapshots-异步状态快照" class="headerlink" title="Asynchronous State Snapshots 异步状态快照"></a>Asynchronous State Snapshots 异步状态快照</h2><p>上面所述的机制表明算子在存储快照数据到后端存储系统的时候会停止处理输入数据，这种同步产生状态快照的模式每次产生的快照的时候都会引入额外的延时。</p>
+<p>我们完全可以让算子在快照数据的同时继续处理输入数据，让快照的存储在后台异步进行。为了做到异步状态快照，算子必须能保证产生一个状态数据对象被存储之后，后续对状态的修改不会影响这个状态数据对象。例如 <code>RocksDB</code> 中使用的 <code>写时复制（ copy-on-write ）</code> 类型的数据结构。</p>
+<p>接收到输入数据的栅栏的时候，算子开始异步的快照复制出它的状态。算子立即向输出发射栅栏，并继续处理输入数据。当后台异步快照完成时，算子会向 <code>检查点协调器</code>（<code>checkpoints coordinator</code>, 也就是 <code>Job Manager</code>）确认检查点完成，现在检查点完成的充分条件是：所有的 <code>输出算子（sink）</code> 都接收到了栅栏，而且所有有状态的算子确认完成了状态数据的备份（这个确认操作可能会晚于栅栏到达 <code>输出算子（sink）</code>）。</p>
+<p>详细的状态快照见： <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.7/ops/state/state_backends.html" title="State Backends" target="_blank" rel="noopener">State Backends</a></p>
+<h2 id="故障恢复-Recovery"><a href="#故障恢复-Recovery" class="headerlink" title="故障恢复(Recovery)"></a><code>故障恢复(Recovery)</code></h2><p>这种机制下的故障恢复就很简单：当发生故障的时候，<code>Flink</code> 选择最新完成的<code>检查点 k</code>。然后系统重新部署整个分布式数据流，给所有的算子提供快照在检查点中的状态数据用于恢复。输入流的读取位置被设置到从 S<sub>k</sub> 开始读取，对于 <code>Apache Kafka</code> 来说就是通知 <code>consumer</code> 从偏移位置 S<sub>k</sub> 开始消费消息。</p>
+<h2 id="算子快照的实现"><a href="#算子快照的实现" class="headerlink" title="算子快照的实现"></a>算子快照的实现</h2><p>算子产生快照的过程分为两个部分：<code>同步部分</code> 和 <code>异步部分</code>。</p>
+<p>算子和状态后端存储系统(<code>State Backends</code>) 提供 <code>Java FutureTask</code> 用于快照。这个任务包含同步部分已经完成，异步部分还在等待的状态，检查点的异步部分在后台线程中被执行。</p>
+<p>完成同步的算子仅仅返回一个已经完成的 <code>FutureTask</code>。如果需要异步执行，<code>FutureTask</code> 中的 <code>run()</code> 方法将被会调用。</p>
+<p>这些 <code>FutureTask</code> 是可以取消的，这样就可以释放流和其他资源的消耗。</p>
+<h1 id="比较一下-Checkpoint-和-Savepoint"><a href="#比较一下-Checkpoint-和-Savepoint" class="headerlink" title="比较一下 Checkpoint 和 Savepoint"></a>比较一下 <code>Checkpoint</code> 和 <code>Savepoint</code></h1><p><code>Checkpoint</code> 和 <code>Savepoint</code> 都是 flink 提供的容错恢复机制，两个不管是命名还是使用方式都很类似，这里分别对两个进行一个简单的介绍并且对二者进行对比。</p>
+<h2 id="保存点-Savepoint"><a href="#保存点-Savepoint" class="headerlink" title="保存点(Savepoint)"></a><code>保存点(Savepoint)</code></h2><p>保存点是通过 <code>Flink</code> 的 <code>检查点机制(checkpointing mechanism)</code> 创建的，包含数据流任务的运行状态的一个一致性的快照数据。你可以用保存点去停止并重启任务、复制任务或者更新任务。</p>
+<p>保存点由两个部分组成</p>
+<ol>
+<li>存储在一个稳定的存储介质（<code>HDFS</code>、<code>S3</code>等）上的，一般来说比较大的包含二进制文件的文件夹。这些二进制文件纯粹的保存任务的运行状态的快照数据。</li>
+<li>一个元数据文件（一般来说比较小），文件中保存了指向存储在稳定存储介质上的保存点的所有文件的指针（文件路径）。</li>
+</ol>
+<h2 id="算子命名的重要性"><a href="#算子命名的重要性" class="headerlink" title="算子命名的重要性"></a>算子命名的重要性</h2><p>保存点中维护了一个 map 格式的数据</p>
+<pre><code>Operator ID | State
+------------+------------------------
+source-id   | State of StatefulSource
+mapper-id   | State of StatefulMapper</code></pre><p>通过算子的ID 能够获取到起对应的状态数据，在新增、删除算子或者修改算子的顺序的时候如果没有自定义命名，而是使用 flink 的默认命名方式，算子的数量和顺序的改变会影响重新启动的算子的ID，可能会导致算子ID 的状态数据匹配错误。强烈建议给每个算子设置一个  <code>ID</code>。</p>
+<h2 id="从保存点重启任务的时候算子修改会有什么结果"><a href="#从保存点重启任务的时候算子修改会有什么结果" class="headerlink" title="从保存点重启任务的时候算子修改会有什么结果?"></a>从保存点重启任务的时候算子修改会有什么结果?</h2><h3 id="新增一个有状态的节点"><a href="#新增一个有状态的节点" class="headerlink" title="新增一个有状态的节点"></a>新增一个有状态的节点</h3><p>When you add a new operator to your job it will be initialized without any state. Savepoints contain the state of each stateful operator. Stateless operators are simply not part of the savepoint. The new operator behaves similar to a stateless operator.</p>
+<p>新增的有状态的算子在重启的时候变现的和无状态的算子一样，因为保存点中没有这个算子对应的装填数据。</p>
+<h3 id="删除一个有状态的节点"><a href="#删除一个有状态的节点" class="headerlink" title="删除一个有状态的节点"></a>删除一个有状态的节点</h3><p>默认情况下删除一个有状态的节点会导致重启失败，因为这个过程默认需要确保所有状态数据都要对应一个算子。如果你真的需要删除一个状态的节点，你需要在启动参数中加上参数 <code>--allowNonRestoredState (short: -n)</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ bin/flink run -s :savepointPath -n [:runArgs]</span><br></pre></td></tr></table></figure>
+
+<h3 id="重新排序有状态的节点-amp-amp-删除或者重新排序无状态的节点"><a href="#重新排序有状态的节点-amp-amp-删除或者重新排序无状态的节点" class="headerlink" title="重新排序有状态的节点 &amp;&amp; 删除或者重新排序无状态的节点"></a>重新排序有状态的节点 &amp;&amp; 删除或者重新排序无状态的节点</h3><p>算子指定ID 的情况下没问题，否则可能会导致状态数据匹配错误而重启失败</p>
+<h3 id="修改算子的并行度"><a href="#修改算子的并行度" class="headerlink" title="修改算子的并行度"></a>修改算子的并行度</h3><p><code>flink 1.2</code> 以上版本并且没有使用任何 <code>State</code> 相关的 <code>过时API</code> 没有问题。<br>如果保存点是在 <code>flink 1.2</code> 以下版本或者使用了 <code>State</code> 相关的 <code>过时API</code> 的代码中生成的，你需要升级 flink 版本并且替换 <code>State</code> 相关的 <code>过时API</code>，详见 <a href="https://ci.apache.org/projects/flink/flink-docs-release-1.7/ops/upgrading.html" title="upgrading jobs and Flink versions guide." target="_blank" rel="noopener">upgrading jobs and Flink versions guide</a></p>
+<h2 id="保存点-Savepoint-和-检查点-Checkpoint-的区别"><a href="#保存点-Savepoint-和-检查点-Checkpoint-的区别" class="headerlink" title="保存点(Savepoint) 和 检查点(Checkpoint) 的区别"></a><code>保存点(Savepoint)</code> 和 <code>检查点(Checkpoint)</code> 的区别</h2><p>从在概念上说，<code>保存点(Savepoint)</code> 和 <code>检查点(Checkpoint)</code> 的不同比较像备份不同于传统数据库从日志恢复。</p>
+<p>下面是他们的不同点：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>检查点</th>
+<th>保存点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>目的</td>
+<td>为出现异常情况 Flink 任务提供一个恢复机制确保任务能从部分故障中恢复</td>
+<td>用户手动维护任务的时候触发应用重启等操作</td>
+</tr>
+<tr>
+<td>设计要求</td>
+<td>作为一个用于恢复的，被周期调用的方法，它的实现要求:<br> 1. 创建过程很轻量级 <br> 2. 可以快速的从检查点恢复故障</td>
+<td>保存点的设计要求更着重于备份数据的便携性，而不是很关注创建过程的轻量级和快速恢复。</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>flink 直接管理检查点的生命周期，从创建到释放都不需要维护人用手动触发</td>
+<td>维护人员手动触发保存点的创建和删除，所有者是维护人员。</td>
+</tr>
+<tr>
+<td>删除</td>
+<td>用户停止任务之后被删除（除非编码或配置声明保留）</td>
+<td>维护人员手动删除</td>
+</tr>
+<tr>
+<td>具体实现</td>
+<td>虽然目前保存点和检查点的代码实现和产生的文件格式都是一样的，但是使用 RocksDB 的检查点使用的保存格式不是flink 定义的，而是 RocksDB 自定义的格式，而且 RocksDB 的检查点支持增量检查点<br><span style="color:red">不支持 rescaling </span></td>
+<td>不支持增量，支持 rescaling</td>
+</tr>
+</tbody></table>
+<p><strong>* rescaling 的翻译存疑，猜测是改变并行度*</strong></p>
+<h6 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h6><p><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.7/internals/stream_checkpointing.html" target="_blank" rel="noopener">https://ci.apache.org/projects/flink/flink-docs-release-1.7/internals/stream_checkpointing.html</a><br><br><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.7/ops/state/checkpoints.html" target="_blank" rel="noopener">https://ci.apache.org/projects/flink/flink-docs-release-1.7/ops/state/checkpoints.html</a><br><br><a href="https://ci.apache.org/projects/flink/flink-docs-release-1.7/ops/state/savepoints.html" target="_blank" rel="noopener">https://ci.apache.org/projects/flink/flink-docs-release-1.7/ops/state/savepoints.html</a><br></p>
+<p>本人 flink 小白萌新一枚，如有错漏之处，敬请斧正！</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/flink/" rel="tag"># flink</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/26/技术/flink/flink之重启策略/" rel="next" title="Flink 探究之路 ———— Flink Job 重启策略">
+                <i class="fa fa-chevron-left"></i> Flink 探究之路 ———— Flink Job 重启策略
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/03/01/技术/java/jar包中文件修改/" rel="prev" title="如何修改jar包中文件">
+                如何修改jar包中文件 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink-的容错机制"><span class="nav-number">1.</span> <span class="nav-text">Flink 的容错机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Checkpointing"><span class="nav-number">2.</span> <span class="nav-text">Checkpointing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Barriers-栅栏"><span class="nav-number">2.1.</span> <span class="nav-text">Barriers (栅栏)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态-State"><span class="nav-number">2.2.</span> <span class="nav-text">状态 State</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exactly-Once-vs-At-Least-Once-只响应一次还是还是至少响应一次"><span class="nav-number">2.3.</span> <span class="nav-text">Exactly Once vs. At Least Once 只响应一次还是还是至少响应一次</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Asynchronous-State-Snapshots-异步状态快照"><span class="nav-number">2.4.</span> <span class="nav-text">Asynchronous State Snapshots 异步状态快照</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#故障恢复-Recovery"><span class="nav-number">2.5.</span> <span class="nav-text">故障恢复(Recovery)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算子快照的实现"><span class="nav-number">2.6.</span> <span class="nav-text">算子快照的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#比较一下-Checkpoint-和-Savepoint"><span class="nav-number">3.</span> <span class="nav-text">比较一下 Checkpoint 和 Savepoint</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#保存点-Savepoint"><span class="nav-number">3.1.</span> <span class="nav-text">保存点(Savepoint)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算子命名的重要性"><span class="nav-number">3.2.</span> <span class="nav-text">算子命名的重要性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#从保存点重启任务的时候算子修改会有什么结果"><span class="nav-number">3.3.</span> <span class="nav-text">从保存点重启任务的时候算子修改会有什么结果?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新增一个有状态的节点"><span class="nav-number">3.3.1.</span> <span class="nav-text">新增一个有状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除一个有状态的节点"><span class="nav-number">3.3.2.</span> <span class="nav-text">删除一个有状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重新排序有状态的节点-amp-amp-删除或者重新排序无状态的节点"><span class="nav-number">3.3.3.</span> <span class="nav-text">重新排序有状态的节点 &amp;&amp; 删除或者重新排序无状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改算子的并行度"><span class="nav-number">3.3.4.</span> <span class="nav-text">修改算子的并行度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保存点-Savepoint-和-检查点-Checkpoint-的区别"><span class="nav-number">3.4.</span> <span class="nav-text">保存点(Savepoint) 和 检查点(Checkpoint) 的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#参考文档"><span class="nav-number">3.4.0.0.0.1.</span> <span class="nav-text">参考文档</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

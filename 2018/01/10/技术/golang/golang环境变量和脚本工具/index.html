@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="golang,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="golang 的环境变量和脚本工具介绍">
+<meta name="keywords" content="golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="golang 环境变量和 golang 脚本工具">
+<meta property="og:url" content="https://summerbuger.github.io/2018/01/10/技术/golang/golang环境变量和脚本工具/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="golang 的环境变量和脚本工具介绍">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.454Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="golang 环境变量和 golang 脚本工具">
+<meta name="twitter:description" content="golang 的环境变量和脚本工具介绍">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2018/01/10/技术/golang/golang环境变量和脚本工具/">
+
+
+
+
+
+  <title>golang 环境变量和 golang 脚本工具 | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2018/01/10/技术/golang/golang环境变量和脚本工具/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">golang 环境变量和 golang 脚本工具</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-10T21:00:00+08:00">
+                2018-01-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  golang 的环境变量和脚本工具介绍
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="golang-环境变量"><a href="#golang-环境变量" class="headerlink" title="golang 环境变量"></a>golang 环境变量</h1><p>想要了解 go 的环境变量，我们可以通过 <code>go help environment</code> 指令来查看详细介绍，这里尝试翻译这一些详细介绍，并给出一些个人的认识，如有错漏，欢迎指正</p>
+<h2 id="通用环境变量-General-purpose-environment-variables"><a href="#通用环境变量-General-purpose-environment-variables" class="headerlink" title="通用环境变量(General-purpose environment variables)"></a>通用环境变量(General-purpose environment variables)</h2><h3 id="GCCGO"><a href="#GCCGO" class="headerlink" title="GCCGO"></a>GCCGO</h3><p><code>gccgo</code> 属于 <code>gcc</code> 编译器集合，是 <code>gcc</code> 针对go 语言的前端实现；<code>gccgo</code> 的编译速度比gc较慢一点，但是可以生成更优的代码，因此程序执行速度会更快。<br>golang 的默认编译器是 <code>gc</code>, <code>gc</code> 编译器已支持主流的处理器，而 <code>gccgo</code> 也对 <code>gc</code> 不支持的处理器进行了支持测试；<br>通过Go正式版本安装的go命令已经可以支持 <code>gccgo</code>，需要使用 -compiler选项：<code>go build -compiler=gccgo</code> 。<br>对于用户，如果需要更好编译优化，或者是使用 <code>gc</code> 所不支持的处理器或操作系统，<code>gccgo</code> 可能是一个更好的选择。</p>
+<h3 id="GOARCH"><a href="#GOARCH" class="headerlink" title="GOARCH"></a>GOARCH</h3><p>编译源代码的机器的处理器架构，它的值可以是 386、amd64 或 arm。</p>
+<h3 id="GOBIN"><a href="#GOBIN" class="headerlink" title="GOBIN"></a>GOBIN</h3><p><code>go install</code> 编译出来的可执行文件的存放位置，<code>GOBIN</code> 的默认值是<code>GOPATH/bin</code><br>如果 <code>GOBIN</code> 设置了值，编译出来的可执行脚本将放置到到 <code>GOBIN</code> 设置的文件夹，而不是 .go 文件所在的src 文件夹同级的 bin 文件夹</p>
+<h3 id="GOOS"><a href="#GOOS" class="headerlink" title="GOOS"></a>GOOS</h3><p>编译源代码的机器的操作系统, 它的值可以是 linux, darwin, windows, netbsd。</p>
+<h3 id="GOPATH"><a href="#GOPATH" class="headerlink" title="GOPATH"></a>GOPATH</h3><p><code>GOPATH</code> 列举了机器上所有go代码所在位置，在Unix系统中，该值是以冒号分隔的字符串。<br>在Unix 系统中<code>GOPATH</code> 默认值是 <code>%HOME/go</code>， windows 系统中默认值是 <code>%USERPROFILE%\go</code><br><code>GOPATH</code> 中文件夹结构如下:</p>
+<pre><code>GOPATH=/home/user/go
+
+/home/user/go/
+ src/
+     foo/
+         bar/               (go code in package bar)
+             x.go
+         quux/              (go code in package main)
+             y.go
+ bin/
+     quux                   (installed command)
+ pkg/
+     linux_amd64/
+         foo/
+             bar.a          (installed package object)</code></pre><p><code>src</code>: 存放 go 源文件<br><code>bin</code>: package main 中的go 文件编译之后产生的可执行文件存放位置<br><code>pkg</code>: 非 package main 中的go 文件编译之后产生的静态库文件(*.a)存放位置</p>
+<p>设计开发中，需要将所有存放go 代码的位置都添加到 <code>GOPATH</code> 中去</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export GOPATH=:</span><br></pre></td></tr></table></figure>
+
+<h3 id="GORACE"><a href="#GORACE" class="headerlink" title="GORACE"></a>GORACE</h3><p>竞争监测相关参数，详见 <a href="https://golang.org/doc/articles/race_detector.html" target="_blank" rel="noopener">https://golang.org/doc/articles/race_detector.html</a>.<br><em>待补充</em></p>
+<h3 id="GOROOT"><a href="#GOROOT" class="headerlink" title="GOROOT"></a>GOROOT</h3><p>go 安装目录</p>
+<h3 id="GOTMPDIR"><a href="#GOTMPDIR" class="headerlink" title="GOTMPDIR"></a>GOTMPDIR</h3><p>The directory where the go command will write<br>temporary source files, packages, and binaries.</p>
+<h3 id="GOCACHE"><a href="#GOCACHE" class="headerlink" title="GOCACHE"></a>GOCACHE</h3><p>存放go 编译系统编译过程中产生的缓存文件，如果这个文件过大，可以执行 <code>go clean --cache</code> 去清理这个文件夹</p>
+<h2 id="cgo-相关环境变量"><a href="#cgo-相关环境变量" class="headerlink" title="cgo 相关环境变量"></a>cgo 相关环境变量</h2><h3 id="CC"><a href="#CC" class="headerlink" title="CC"></a>CC</h3><p><code>cgo</code> 编译 c语言代码时候使用的编译器, 需要用户额外安装</p>
+<h3 id="CGO-ENABLED"><a href="#CGO-ENABLED" class="headerlink" title="CGO_ENABLED"></a>CGO_ENABLED</h3><p>是否支持 cgo， 取值是 0 或者 1</p>
+<h3 id="CGO-CFLAGS"><a href="#CGO-CFLAGS" class="headerlink" title="CGO_CFLAGS"></a>CGO_CFLAGS</h3><p>cgo 编译 c 代码时传递的参数</p>
+<h3 id="CGO-CFLAGS-ALLOW"><a href="#CGO-CFLAGS-ALLOW" class="headerlink" title="CGO_CFLAGS_ALLOW"></a>CGO_CFLAGS_ALLOW</h3><p>出于安全考虑，cgo 编译 c 代码时只能允许有限的参数， <code>CGO_CFLAGS_ALLOW</code> 的取值是一个 <code>正则表达式</code>，涵盖所有允许的参数名称</p>
+<h3 id="CGO-CFLAGS-DISALLOW"><a href="#CGO-CFLAGS-DISALLOW" class="headerlink" title="CGO_CFLAGS_DISALLOW"></a>CGO_CFLAGS_DISALLOW</h3><p>和 <code>CGO_CFLAGS_ALLOW</code> 相反，<code>CGO_CFLAGS_ALLOW</code> 的取值也是一个 <code>正则表达式</code>，涵盖所有不允许的参数名称</p>
+<h3 id="CGO-CPPFLAGS-CGO-CPPFLAGS-ALLOW-CGO-CPPFLAGS-DISALLOW"><a href="#CGO-CPPFLAGS-CGO-CPPFLAGS-ALLOW-CGO-CPPFLAGS-DISALLOW" class="headerlink" title="CGO_CPPFLAGS, CGO_CPPFLAGS_ALLOW, CGO_CPPFLAGS_DISALLOW"></a>CGO_CPPFLAGS, CGO_CPPFLAGS_ALLOW, CGO_CPPFLAGS_DISALLOW</h3><p>类似于 <code>CGO_CFLAGS</code>, <code>CGO_CFLAGS_ALLOW</code>, <code>CGO_CFLAGS_DISALLOW</code>, 不过是用于 <code>c</code> 预处理器</p>
+<h3 id="CGO-CXXFLAGS-CGO-CXXFLAGS-ALLOW-CGO-CXXFLAGS-DISALLOW"><a href="#CGO-CXXFLAGS-CGO-CXXFLAGS-ALLOW-CGO-CXXFLAGS-DISALLOW" class="headerlink" title="CGO_CXXFLAGS, CGO_CXXFLAGS_ALLOW, CGO_CXXFLAGS_DISALLOW"></a>CGO_CXXFLAGS, CGO_CXXFLAGS_ALLOW, CGO_CXXFLAGS_DISALLOW</h3><p>类似于 <code>CGO_CFLAGS</code>, <code>CGO_CFLAGS_ALLOW</code>, <code>CGO_CFLAGS_DISALLOW</code>, 不过是用于 <code>c++</code> 编译器</p>
+<h3 id="CGO-FFLAGS-CGO-FFLAGS-ALLOW-CGO-FFLAGS-DISALLOW"><a href="#CGO-FFLAGS-CGO-FFLAGS-ALLOW-CGO-FFLAGS-DISALLOW" class="headerlink" title="CGO_FFLAGS, CGO_FFLAGS_ALLOW, CGO_FFLAGS_DISALLOW"></a>CGO_FFLAGS, CGO_FFLAGS_ALLOW, CGO_FFLAGS_DISALLOW</h3><p>类似于 <code>CGO_CFLAGS</code>, <code>CGO_CFLAGS_ALLOW</code>, <code>CGO_CFLAGS_DISALLOW</code>, 不过是用于 <code>Fortran</code> 编译器</p>
+<h3 id="CGO-LDFLAGS-CGO-LDFLAGS-ALLOW-CGO-LDFLAGS-DISALLOW"><a href="#CGO-LDFLAGS-CGO-LDFLAGS-ALLOW-CGO-LDFLAGS-DISALLOW" class="headerlink" title="CGO_LDFLAGS, CGO_LDFLAGS_ALLOW, CGO_LDFLAGS_DISALLOW"></a>CGO_LDFLAGS, CGO_LDFLAGS_ALLOW, CGO_LDFLAGS_DISALLOW</h3><p>类似于 <code>CGO_CFLAGS</code>, <code>CGO_CFLAGS_ALLOW</code>, <code>CGO_CFLAGS_DISALLOW</code>, 不过是用于 <code>c</code> 链接器</p>
+<h3 id="CXX"><a href="#CXX" class="headerlink" title="CXX"></a>CXX</h3><p>cgo 编译 <code>C++</code>的编译器</p>
+<h3 id="PKG-CONFIG"><a href="#PKG-CONFIG" class="headerlink" title="PKG_CONFIG"></a>PKG_CONFIG</h3><p>取值是 指向 <code>pkg_config</code> 工具的绝对路径</p>
+<h2 id="架构相关的特殊目的的环境变量"><a href="#架构相关的特殊目的的环境变量" class="headerlink" title="架构相关的特殊目的的环境变量"></a>架构相关的特殊目的的环境变量</h2><h3 id="GOARM"><a href="#GOARM" class="headerlink" title="GOARM"></a>GOARM</h3><p>当 <code>GOARCH=arm</code> 时，arm 架构的处理器，它的取值是 5,6,7</p>
+<h3 id="GO386"><a href="#GO386" class="headerlink" title="GO386"></a>GO386</h3><p>当 <code>GOARCH=386</code> 时，浮点指令集，它的取值是  387, sse2</p>
+<h3 id="GOMIPS"><a href="#GOMIPS" class="headerlink" title="GOMIPS"></a>GOMIPS</h3><p>当 <code>GOARCH=mips{,le}</code> 时，指定是软浮点还是硬浮点</p>
+<h2 id="特殊目的的环境变量"><a href="#特殊目的的环境变量" class="headerlink" title="特殊目的的环境变量"></a>特殊目的的环境变量</h2><h3 id="GOROOT-FINAL"><a href="#GOROOT-FINAL" class="headerlink" title="GOROOT_FINAL"></a>GOROOT_FINAL</h3><p>当go 根目录和go 安装目录不一致时，将 <code>GOROOT_FINAL</code> 设置为go 的根目录</p>
+<h3 id="GIT-ALLOW-PROTOCOL"><a href="#GIT-ALLOW-PROTOCOL" class="headerlink" title="GIT_ALLOW_PROTOCOL"></a>GIT_ALLOW_PROTOCOL</h3><p><code>go get</code> 指令使用 <code>git fetch/clone</code> 获取 go 代码的时候允许使用的 <code>schema</code>, 多个 <code>schema</code> 用冒号分割；<br>如果 <code>GIT_ALLOW_PROTOCOL</code> 不包含某个 <code>schema</code>， <code>go get</code> 认为它是不安全的</p>
+<h3 id="GO-EXTLINK-ENABLED"><a href="#GO-EXTLINK-ENABLED" class="headerlink" title="GO_EXTLINK_ENABLED"></a>GO_EXTLINK_ENABLED</h3><p>Whether the linker should use external linking mode<br>when using -linkmode=auto with code that uses cgo.<br>Set to 0 to disable external linking mode, 1 to enable it.</p>
+<h1 id="go-提供的脚本工具"><a href="#go-提供的脚本工具" class="headerlink" title="go 提供的脚本工具"></a>go 提供的脚本工具</h1><h1 id="gofmt"><a href="#gofmt" class="headerlink" title="gofmt"></a>gofmt</h1><p>格式化 go 语言代码</p>
+<pre><code>使用示例: gofmt [flags] [path ...]
+-cpuprofile string
+    write cpu profile to this file
+-d    在控制台输出格式化后的代码和源代码的对比
+-e    report all errors (not just the first 10 on different lines)
+-l    list files whose formatting differs from gofmt&apos;s
+-r string
+    重写规则，如 &apos;a[b:len(a)] -&gt; a[b:]&apos; 将 `a[b:len(a)]` 替换成 `a[b:len(a)]`
+-s    简化源代码
+-w    将格式化结果写回源文件，而不是输出到控制台</code></pre><h3 id="go-install"><a href="#go-install" class="headerlink" title="go install"></a>go install</h3><h3 id="go-get"><a href="#go-get" class="headerlink" title="go get"></a>go get</h3><h3 id="go-build"><a href="#go-build" class="headerlink" title="go build"></a>go build</h3><h4 id="交叉编译-cross-compile"><a href="#交叉编译-cross-compile" class="headerlink" title="交叉编译 (cross compile)"></a>交叉编译 (cross compile)</h4><p>Golang 支持交叉编译，在一个平台上生成另一个平台的可执行程序，这里备忘一下。</p>
+<p>Mac 下编译 Linux 和 Windows 64位可执行程序</p>
+<pre><code>CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build main.go
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go</code></pre><p>Linux 下编译 Mac 和 Windows 64位可执行程序</p>
+<pre><code>CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build main.go
+CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go</code></pre><p>Windows 下编译 Mac 和 Linux 64位可执行程序</p>
+<pre><code>SET CGO_ENABLED=0
+SET GOOS=darwin
+SET GOARCH=amd64
+go build main.go
+
+SET CGO_ENABLED=0
+SET GOOS=linux
+SET GOARCH=amd64
+go build main.go</code></pre><p>GOOS：目标平台的操作系统（darwin、freebsd、linux、windows）<br>GOARCH：目标平台的体系架构（386、amd64、arm）<br>交叉编译不支持 CGO 所以要禁用它</p>
+<h3 id="gdb"><a href="#gdb" class="headerlink" title="gdb"></a>gdb</h3>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/golang/" rel="tag"># golang</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/12/10/技术/kafka/2017-12-10-kafka如何把实现consumer控制offset/" rel="next" title="kafka 中的偏移量">
+                <i class="fa fa-chevron-left"></i> kafka 中的偏移量
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/01/18/技术/mac&linux/常用通信端口总结/" rel="prev" title="常用通信端口总结">
+                常用通信端口总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#golang-环境变量"><span class="nav-number">1.</span> <span class="nav-text">golang 环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#通用环境变量-General-purpose-environment-variables"><span class="nav-number">1.1.</span> <span class="nav-text">通用环境变量(General-purpose environment variables)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GCCGO"><span class="nav-number">1.1.1.</span> <span class="nav-text">GCCGO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOARCH"><span class="nav-number">1.1.2.</span> <span class="nav-text">GOARCH</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOBIN"><span class="nav-number">1.1.3.</span> <span class="nav-text">GOBIN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOOS"><span class="nav-number">1.1.4.</span> <span class="nav-text">GOOS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOPATH"><span class="nav-number">1.1.5.</span> <span class="nav-text">GOPATH</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GORACE"><span class="nav-number">1.1.6.</span> <span class="nav-text">GORACE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOROOT"><span class="nav-number">1.1.7.</span> <span class="nav-text">GOROOT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOTMPDIR"><span class="nav-number">1.1.8.</span> <span class="nav-text">GOTMPDIR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOCACHE"><span class="nav-number">1.1.9.</span> <span class="nav-text">GOCACHE</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cgo-相关环境变量"><span class="nav-number">1.2.</span> <span class="nav-text">cgo 相关环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CC"><span class="nav-number">1.2.1.</span> <span class="nav-text">CC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-ENABLED"><span class="nav-number">1.2.2.</span> <span class="nav-text">CGO_ENABLED</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-CFLAGS"><span class="nav-number">1.2.3.</span> <span class="nav-text">CGO_CFLAGS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-CFLAGS-ALLOW"><span class="nav-number">1.2.4.</span> <span class="nav-text">CGO_CFLAGS_ALLOW</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-CFLAGS-DISALLOW"><span class="nav-number">1.2.5.</span> <span class="nav-text">CGO_CFLAGS_DISALLOW</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-CPPFLAGS-CGO-CPPFLAGS-ALLOW-CGO-CPPFLAGS-DISALLOW"><span class="nav-number">1.2.6.</span> <span class="nav-text">CGO_CPPFLAGS, CGO_CPPFLAGS_ALLOW, CGO_CPPFLAGS_DISALLOW</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-CXXFLAGS-CGO-CXXFLAGS-ALLOW-CGO-CXXFLAGS-DISALLOW"><span class="nav-number">1.2.7.</span> <span class="nav-text">CGO_CXXFLAGS, CGO_CXXFLAGS_ALLOW, CGO_CXXFLAGS_DISALLOW</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-FFLAGS-CGO-FFLAGS-ALLOW-CGO-FFLAGS-DISALLOW"><span class="nav-number">1.2.8.</span> <span class="nav-text">CGO_FFLAGS, CGO_FFLAGS_ALLOW, CGO_FFLAGS_DISALLOW</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CGO-LDFLAGS-CGO-LDFLAGS-ALLOW-CGO-LDFLAGS-DISALLOW"><span class="nav-number">1.2.9.</span> <span class="nav-text">CGO_LDFLAGS, CGO_LDFLAGS_ALLOW, CGO_LDFLAGS_DISALLOW</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CXX"><span class="nav-number">1.2.10.</span> <span class="nav-text">CXX</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PKG-CONFIG"><span class="nav-number">1.2.11.</span> <span class="nav-text">PKG_CONFIG</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构相关的特殊目的的环境变量"><span class="nav-number">1.3.</span> <span class="nav-text">架构相关的特殊目的的环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GOARM"><span class="nav-number">1.3.1.</span> <span class="nav-text">GOARM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GO386"><span class="nav-number">1.3.2.</span> <span class="nav-text">GO386</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GOMIPS"><span class="nav-number">1.3.3.</span> <span class="nav-text">GOMIPS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特殊目的的环境变量"><span class="nav-number">1.4.</span> <span class="nav-text">特殊目的的环境变量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GOROOT-FINAL"><span class="nav-number">1.4.1.</span> <span class="nav-text">GOROOT_FINAL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GIT-ALLOW-PROTOCOL"><span class="nav-number">1.4.2.</span> <span class="nav-text">GIT_ALLOW_PROTOCOL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GO-EXTLINK-ENABLED"><span class="nav-number">1.4.3.</span> <span class="nav-text">GO_EXTLINK_ENABLED</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#go-提供的脚本工具"><span class="nav-number">2.</span> <span class="nav-text">go 提供的脚本工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#gofmt"><span class="nav-number">3.</span> <span class="nav-text">gofmt</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#go-install"><span class="nav-number">3.0.1.</span> <span class="nav-text">go install</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#go-get"><span class="nav-number">3.0.2.</span> <span class="nav-text">go get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#go-build"><span class="nav-number">3.0.3.</span> <span class="nav-text">go build</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#交叉编译-cross-compile"><span class="nav-number">3.0.3.1.</span> <span class="nav-text">交叉编译 (cross compile)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gdb"><span class="nav-number">3.0.4.</span> <span class="nav-text">gdb</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

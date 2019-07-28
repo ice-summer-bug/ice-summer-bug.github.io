@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Json,Java,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="jackson 可选特性说明">
+<meta name="keywords" content="Json,Java">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jackson 中的 Features">
+<meta property="og:url" content="https://summerbuger.github.io/2016/07/10/技术/java/2016-07-10-jackson中的Feature/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="jackson 可选特性说明">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/jacksonFeature.png">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.454Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jackson 中的 Features">
+<meta name="twitter:description" content="jackson 可选特性说明">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/jacksonFeature.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2016/07/10/技术/java/2016-07-10-jackson中的Feature/">
+
+
+
+
+
+  <title>Jackson 中的 Features | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2016/07/10/技术/java/2016-07-10-jackson中的Feature/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Jackson 中的 Features</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-10T21:00:00+08:00">
+                2016-07-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  jackson 可选特性说明
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Jackson-中的各种-Features"><a href="#Jackson-中的各种-Features" class="headerlink" title="Jackson 中的各种 Features"></a>Jackson 中的各种 Features</h2><p>先来看看 jackson 中的各种feature<br><img src="/assets/picture/jacksonFeature.png" alt="图片" title="Feature 类图"></p>
+<p>首先是 序列化时候的Feature ——</p>
+<h3 id="SerializaitonFeature"><a href="#SerializaitonFeature" class="headerlink" title="SerializaitonFeature"></a>SerializaitonFeature</h3><hr>
+<h4 id="WRAP-ROOT-VALUE-false-序列化的json是否显示根节点"><a href="#WRAP-ROOT-VALUE-false-序列化的json是否显示根节点" class="headerlink" title="WRAP_ROOT_VALUE(false) : 序列化的json是否显示根节点"></a><code>WRAP_ROOT_VALUE(false)</code> : 序列化的json是否显示根节点</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testWrapRoot</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       SimpleBean simpleBean = <span class="keyword">new</span> SimpleBean();</span><br><span class="line">       simpleBean.setCode(<span class="number">1</span>);</span><br><span class="line">       simpleBean.setName(<span class="string">"TEST_WRAP_ROOT_VALUE"</span>);</span><br><span class="line">       simpleBean.setDesc(Lists.newArrayList(<span class="string">"test1"</span>, <span class="string">"test2"</span>, <span class="string">"test3"</span>));</span><br><span class="line"></span><br><span class="line">       ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.enable(SerializationFeature.WRAP_ROOT_VALUE);</span></span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           String s = objectMapper.writeValueAsString(simpleBean);</span><br><span class="line">           System.out.println(s);</span><br><span class="line">       &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">           e.printStackTrace();</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<pre><code>{&quot;name&quot;:&quot;TEST_WRAP_ROOT_VALUE&quot;,&quot;code&quot;:1,&quot;desc&quot;:[&quot;test1&quot;,&quot;test2&quot;,&quot;test3&quot;]}</code></pre><p>去掉注释的运行结果：</p>
+<pre><code>{&quot;SimpleBean&quot;:{&quot;name&quot;:&quot;TEST_WRAP_ROOT_VALUE&quot;,&quot;code&quot;:1,&quot;desc&quot;:[&quot;test1&quot;,&quot;test2&quot;,&quot;test3&quot;]}}</code></pre><p>从结果可以看出 jackson 会把类名作为根节点展示</p>
+<hr>
+<h4 id="INDENT-OUTPUT-false-允许或禁止是否以缩进的方式展示json"><a href="#INDENT-OUTPUT-false-允许或禁止是否以缩进的方式展示json" class="headerlink" title="INDENT_OUTPUT(false): 允许或禁止是否以缩进的方式展示json"></a><code>INDENT_OUTPUT(false)</code>: 允许或禁止是否以缩进的方式展示json</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testIdentOutput</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    SimpleBean simpleBean = <span class="keyword">new</span> SimpleBean();</span><br><span class="line">    simpleBean.setCode(<span class="number">1</span>);</span><br><span class="line">    simpleBean.setName(<span class="string">"TEST_WRAP_ROOT_VALUE"</span>);</span><br><span class="line">    simpleBean.setDesc(Lists.newArrayList(<span class="string">"test1"</span>, <span class="string">"test2"</span>, <span class="string">"test3"</span>));</span><br><span class="line"></span><br><span class="line">    ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line">    objectMapper.enable(SerializationFeature.INDENT_OUTPUT);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String s = objectMapper.writeValueAsString(simpleBean);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出的结果：</p>
+<pre><code>{
+    &quot;name&quot; : &quot;TEST_WRAP_ROOT_VALUE&quot;,
+    &quot;code&quot; : 1,
+    &quot;desc&quot; : [ &quot;test1&quot;, &quot;test2&quot;, &quot;test3&quot; ]
+}</code></pre><hr>
+<h4 id="FAIL-ON-EMPTY-BEANS-true-当类的一个属性外部无法访问-如：没有getter-setter-的私有属性-，且没有annotation-标明需要序列化时，如果FAIL-ON-EMPTY-BEANS-是true-将会跑出异常，如果是false-则不会跑出异常"><a href="#FAIL-ON-EMPTY-BEANS-true-当类的一个属性外部无法访问-如：没有getter-setter-的私有属性-，且没有annotation-标明需要序列化时，如果FAIL-ON-EMPTY-BEANS-是true-将会跑出异常，如果是false-则不会跑出异常" class="headerlink" title="FAIL_ON_EMPTY_BEANS(true): 当类的一个属性外部无法访问(如：没有getter setter 的私有属性)，且没有annotation 标明需要序列化时，如果FAIL_ON_EMPTY_BEANS 是true 将会跑出异常，如果是false 则不会跑出异常"></a><code>FAIL_ON_EMPTY_BEANS</code>(true): 当类的一个属性外部无法访问(如：没有getter setter 的私有属性)，且没有annotation 标明需要序列化时，如果FAIL_ON_EMPTY_BEANS 是true 将会跑出异常，如果是false 则不会跑出异常</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testFailOnEmptyField</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        TestBean simpleBean = <span class="keyword">new</span> TestBean();</span><br><span class="line"></span><br><span class="line">        ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            String s = objectMapper.writeValueAsString(simpleBean);</span><br><span class="line">            System.out.println(s);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">TestBean</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码运行结果</p>
+<pre><code>com.fasterxml.jackson.databind.JsonMappingException: No serializer found for class com.liam.learning.Main$TestBean and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS)
+  at com.fasterxml.jackson.databind.JsonMappingException.from(JsonMappingException.java:275)
+  at com.fasterxml.jackson.databind.SerializerProvider.mappingException(SerializerProvider.java:1109)
+  at com.fasterxml.jackson.databind.SerializerProvider.reportMappingProblem(SerializerProvider.java:1134)
+  at com.fasterxml.jackson.databind.ser.impl.UnknownSerializer.failForEmpty(UnknownSerializer.java:69)
+  at com.fasterxml.jackson.databind.ser.impl.UnknownSerializer.serialize(UnknownSerializer.java:32)
+  at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:292)
+  at com.fasterxml.jackson.databind.ObjectMapper._configAndWriteValue(ObjectMapper.java:3672)
+  at com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString(ObjectMapper.java:3048)
+  at com.liam.learning.Main.testFailOnEmptyField(Main.java:56)
+  at com.liam.learning.Main.main(Main.java:15)
+  at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  at java.lang.reflect.Method.invoke(Method.java:606)
+  at com.intellij.rt.execution.application.AppMain.main(AppMain.java:144)</code></pre><p>取消注释的运行结果：</p>
+<pre><code>{}</code></pre><hr>
+<h4 id="FAIL-ON-SELF-REFERENCES-true"><a href="#FAIL-ON-SELF-REFERENCES-true" class="headerlink" title="FAIL_ON_SELF_REFERENCES(true)"></a>FAIL_ON_SELF_REFERENCES(true)</h4><p>如果POJO 中有一个直接自我引用，在序列化的时候会抛出 <code>com.fasterxml.jackson.databind.JsonMappingException</code></p>
+<hr>
+<h4 id="WRAP-EXCEPTIONS-true"><a href="#WRAP-EXCEPTIONS-true" class="headerlink" title="WRAP_EXCEPTIONS(true)"></a>WRAP_EXCEPTIONS(true)</h4><p>如果序列化过程中，如果抛出 Exception 将会被包装，添加额外的上下文信息</p>
+<hr>
+<h4 id="FAIL-ON-UNWRAPPED-TYPE-IDENTIFIERS-true"><a href="#FAIL-ON-UNWRAPPED-TYPE-IDENTIFIERS-true" class="headerlink" title="FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS(true),"></a>FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS(true),</h4><h4 id="CLOSE-CLOSEABLE-false"><a href="#CLOSE-CLOSEABLE-false" class="headerlink" title="CLOSE_CLOSEABLE(false),"></a>CLOSE_CLOSEABLE(false),</h4><h4 id="FLUSH-AFTER-WRITE-VALUE-true"><a href="#FLUSH-AFTER-WRITE-VALUE-true" class="headerlink" title="FLUSH_AFTER_WRITE_VALUE(true),"></a>FLUSH_AFTER_WRITE_VALUE(true),</h4><h4 id="WRITE-DATES-AS-TIMESTAMPS-true"><a href="#WRITE-DATES-AS-TIMESTAMPS-true" class="headerlink" title="WRITE_DATES_AS_TIMESTAMPS(true),"></a>WRITE_DATES_AS_TIMESTAMPS(true),</h4><h4 id="WRITE-DATE-KEYS-AS-TIMESTAMPS-false"><a href="#WRITE-DATE-KEYS-AS-TIMESTAMPS-false" class="headerlink" title="WRITE_DATE_KEYS_AS_TIMESTAMPS(false),"></a>WRITE_DATE_KEYS_AS_TIMESTAMPS(false),</h4><h4 id="WRITE-DATES-WITH-ZONE-ID-false"><a href="#WRITE-DATES-WITH-ZONE-ID-false" class="headerlink" title="WRITE_DATES_WITH_ZONE_ID(false),"></a>WRITE_DATES_WITH_ZONE_ID(false),</h4><h4 id="WRITE-DURATIONS-AS-TIMESTAMPS-true"><a href="#WRITE-DURATIONS-AS-TIMESTAMPS-true" class="headerlink" title="WRITE_DURATIONS_AS_TIMESTAMPS(true),"></a>WRITE_DURATIONS_AS_TIMESTAMPS(true),</h4><hr>
+<h4 id="WRITE-CHAR-ARRAYS-AS-JSON-ARRAYS-false-序列化json-的时候对于-char-为true-则解析成数组形式；-为false-则解析成一个字符串-String"><a href="#WRITE-CHAR-ARRAYS-AS-JSON-ARRAYS-false-序列化json-的时候对于-char-为true-则解析成数组形式；-为false-则解析成一个字符串-String" class="headerlink" title="WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS(false): 序列化json 的时候对于 char[] 为true 则解析成数组形式； 为false 则解析成一个字符串(String)"></a>WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS(false): 序列化json 的时候对于 <code>char[]</code> 为true 则解析成数组形式； 为false 则解析成一个字符串(String)</h4><p>示例代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testWriteCharArraysAsJsonArrays</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       String t = <span class="string">"tester"</span>;</span><br><span class="line">       <span class="keyword">char</span>[] arr = t.toCharArray();</span><br><span class="line"></span><br><span class="line">       ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.enable(SerializationFeature.WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS);</span></span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           String s = objectMapper.writeValueAsString(arr);</span><br><span class="line">           System.out.println(s);</span><br><span class="line">       &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">           e.printStackTrace();</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<pre><code>&quot;tester&quot;</code></pre><p>去掉注释后，运行结果如下</p>
+<pre><code>[&quot;t&quot;,&quot;e&quot;,&quot;s&quot;,&quot;t&quot;,&quot;e&quot;,&quot;r&quot;]</code></pre><hr>
+<h4 id="WRITE-ENUMS-USING-TO-STRING-false-序列化时，-enable-用枚举的-enum-toString-表示枚举值-disable-用枚举的-enum-name-表示枚举值"><a href="#WRITE-ENUMS-USING-TO-STRING-false-序列化时，-enable-用枚举的-enum-toString-表示枚举值-disable-用枚举的-enum-name-表示枚举值" class="headerlink" title="WRITE_ENUMS_USING_TO_STRING(false): 序列化时， enable: 用枚举的 enum.toString() 表示枚举值 disable: 用枚举的 enum.name() 表示枚举值"></a>WRITE_ENUMS_USING_TO_STRING(false): 序列化时， enable: 用枚举的 enum.toString() 表示枚举值 disable: 用枚举的 enum.name() 表示枚举值</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testWriteEnumsUsingString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String s = objectMapper.writeValueAsString(CHILD.BOY);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">enum</span> CHILD &#123;</span><br><span class="line">    BOY, GIRL;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"+"</span> + <span class="keyword">this</span>.name() + <span class="string">"+"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码运行结果：</p>
+<pre><code>&quot;BOY&quot;</code></pre><p>去掉注释后的代码运行结果：</p>
+<pre><code>&quot;+BOY+&quot;</code></pre><hr>
+<h4 id="WRITE-ENUMS-USING-INDEX-false-序列化时，用枚举的-enum-index-表示枚举值"><a href="#WRITE-ENUMS-USING-INDEX-false-序列化时，用枚举的-enum-index-表示枚举值" class="headerlink" title="WRITE_ENUMS_USING_INDEX(false): 序列化时，用枚举的 enum.index() 表示枚举值"></a>WRITE_ENUMS_USING_INDEX(false): 序列化时，用枚举的 enum.index() 表示枚举值</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testWriteEnumsUsingIndex</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String s = objectMapper.writeValueAsString(CHILD.BOY);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">enum</span> CHILD &#123;</span><br><span class="line">    BOY, GIRL;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码运行结果：</p>
+<pre><code>&quot;BOY&quot;</code></pre><p>取消注释后代码运行结果：</p>
+<pre><code>0</code></pre><hr>
+<h4 id="WRITE-NULL-MAP-VALUES-true-对于-Map-中的-null-值-是否序列化"><a href="#WRITE-NULL-MAP-VALUES-true-对于-Map-中的-null-值-是否序列化" class="headerlink" title="WRITE_NULL_MAP_VALUES(true): 对于 Map 中的 null 值 是否序列化"></a>WRITE_NULL_MAP_VALUES(true): 对于 Map 中的 null 值 是否序列化</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testWriteNullMapValues</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    HashMap&lt;String, Object&gt; extMap = Maps.newHashMap();</span><br><span class="line">    extMap.put(<span class="string">"test1"</span>, <span class="keyword">null</span>);</span><br><span class="line">    extMap.put(<span class="string">"test2"</span>, <span class="string">"not null"</span>);</span><br><span class="line"></span><br><span class="line">    ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String s = objectMapper.writeValueAsString(extMap);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码运行结果：</p>
+<pre><code>{&quot;test1&quot;:null,&quot;test2&quot;:&quot;not null&quot;}</code></pre><p>去除注释后的运行结果：</p>
+<pre><code>{&quot;test2&quot;:&quot;not null&quot;}</code></pre><hr>
+<h4 id="WRITE-EMPTY-JSON-ARRAYS-true-对于空的-Collection、-数组-为-true-则序列化，-为-false-则跳过，-默认为-true"><a href="#WRITE-EMPTY-JSON-ARRAYS-true-对于空的-Collection、-数组-为-true-则序列化，-为-false-则跳过，-默认为-true" class="headerlink" title="WRITE_EMPTY_JSON_ARRAYS(true): 对于空的 Collection、 数组 ; 为 true 则序列化， 为 false 则跳过， 默认为 true"></a>WRITE_EMPTY_JSON_ARRAYS(true): 对于空的 <code>Collection</code>、 <code>数组</code> ; 为 <code>true</code> 则序列化， 为 <code>false</code> 则跳过， 默认为 <code>true</code></h4><p>示例代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testWriteEmptyJsonArrays</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    SimpleBean simpleBean = <span class="keyword">new</span> SimpleBean();</span><br><span class="line">    simpleBean.setCode(<span class="number">1</span>);</span><br><span class="line">    simpleBean.setName(<span class="string">"WRITE_EMPTY_JSON_ARRAYS"</span>);</span><br><span class="line">    simpleBean.setDesc(Collections.&lt;String&gt;emptyList());</span><br><span class="line"></span><br><span class="line">    ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String s = objectMapper.writeValueAsString(simpleBean);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下：</p>
+<pre><code>{&quot;name&quot;:&quot;WRITE_EMPTY_JSON_ARRAYS&quot;,&quot;code&quot;:1,&quot;desc&quot;:[],&quot;ext&quot;:null}</code></pre><p>取消注释后，运行结果如下：</p>
+<pre><code>{&quot;name&quot;:&quot;WRITE_EMPTY_JSON_ARRAYS&quot;,&quot;code&quot;:1,&quot;ext&quot;:null}</code></pre><hr>
+<h4 id="WRITE-SINGLE-ELEM-ARRAYS-UNWRAPPED-false-序列化json时，对于只有单个元素的数组，不用中括号-‘-’-括起来"><a href="#WRITE-SINGLE-ELEM-ARRAYS-UNWRAPPED-false-序列化json时，对于只有单个元素的数组，不用中括号-‘-’-括起来" class="headerlink" title="WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED(false): 序列化json时，对于只有单个元素的数组，不用中括号(‘[]’)括起来"></a>WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED(false): 序列化json时，对于只有单个元素的数组，不用中括号(‘[]’)括起来</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testWrietSingleElemArraysUnwrapped</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    SimpleBean simpleBean = <span class="keyword">new</span> SimpleBean();</span><br><span class="line">    simpleBean.setCode(<span class="number">1</span>);</span><br><span class="line">    simpleBean.setName(<span class="string">"TEST_WRAP_ROOT_VALUE"</span>);</span><br><span class="line">    simpleBean.setDesc(Lists.newArrayList(<span class="string">"test1"</span>));</span><br><span class="line"></span><br><span class="line">    ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.enable(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED);</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String s = objectMapper.writeValueAsString(simpleBean);</span><br><span class="line">        System.out.println(s);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码运行结果：</p>
+<pre><code>{&quot;name&quot;:&quot;TEST_WRAP_ROOT_VALUE&quot;,&quot;code&quot;:1,&quot;desc&quot;:[&quot;test1&quot;]}</code></pre><p>去掉注释之后的，运行结果</p>
+<pre><code>{&quot;name&quot;:&quot;TEST_WRAP_ROOT_VALUE&quot;,&quot;code&quot;:1,&quot;desc&quot;:&quot;test1&quot;}</code></pre><p>效果一目了然！</p>
+<hr>
+<h4 id="WRITE-BIGDECIMAL-AS-PLAIN-false-deprecated"><a href="#WRITE-BIGDECIMAL-AS-PLAIN-false-deprecated" class="headerlink" title="WRITE_BIGDECIMAL_AS_PLAIN(false): @deprecated"></a>WRITE_BIGDECIMAL_AS_PLAIN(false): <code>@deprecated</code></h4><p><code>@see</code></p>
+<p><code>com.fasterxml.jackson.core.JsonGenerator.Feature#WRITE_BIGDECIMAL_AS_PLAIN</code></p>
+<hr>
+<h4 id="WRITE-DATE-TIMESTAMPS-AS-NANOSECONDS-true-序列化json的时候把时间类型值序列化成纳秒的形式"><a href="#WRITE-DATE-TIMESTAMPS-AS-NANOSECONDS-true-序列化json的时候把时间类型值序列化成纳秒的形式" class="headerlink" title="WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS(true): 序列化json的时候把时间类型值序列化成纳秒的形式"></a>WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS(true): 序列化json的时候把时间类型值序列化成纳秒的形式</h4><pre><code>`注意` 只有最新版本(`jdk8` 中的 `Date/Time` )的时间类型支持本特性, `jdk8` 之前的 `java.util.Date`  和`joda-time` 都不支持！</code></pre><hr>
+<h4 id="ORDER-MAP-ENTRIES-BY-KEYS-false-序列化-Map-的时候，-为-true-则按照-Map-的-key-进行排序，否则不排序"><a href="#ORDER-MAP-ENTRIES-BY-KEYS-false-序列化-Map-的时候，-为-true-则按照-Map-的-key-进行排序，否则不排序" class="headerlink" title="ORDER_MAP_ENTRIES_BY_KEYS(false): 序列化 Map 的时候， 为 true 则按照 Map 的 key 进行排序，否则不排序"></a>ORDER_MAP_ENTRIES_BY_KEYS(false): 序列化 <code>Map</code> 的时候， 为 <code>true</code> 则按照 <code>Map</code> 的 <code>key</code> 进行排序，否则不排序</h4><p>示例代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">testOrderMapEntriesByKeys</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"><span class="comment">//        objectMapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);</span></span><br><span class="line">    Map&lt;String, String&gt; data = ImmutableMap.of(<span class="string">"1"</span>, <span class="string">"test1"</span>, <span class="string">"3"</span>, <span class="string">"test2"</span>, <span class="string">"2"</span>, <span class="string">"test3"</span>, <span class="string">"0"</span>, <span class="string">"test4"</span>);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        String dateStr = objectMapper.writeValueAsString(data);</span><br><span class="line">        System.out.println(dateStr);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<pre><code>{&quot;1&quot;:&quot;test1&quot;,&quot;3&quot;:&quot;test2&quot;,&quot;2&quot;:&quot;test3&quot;,&quot;0&quot;:&quot;test4&quot;}</code></pre><p>取消注释的运行结果：</p>
+<pre><code>{&quot;0&quot;:&quot;test4&quot;,&quot;1&quot;:&quot;test1&quot;,&quot;2&quot;:&quot;test3&quot;,&quot;3&quot;:&quot;test2&quot;}</code></pre><hr>
+<h4 id="EAGER-SERIALIZER-FETCH-true-序列化是是否应当预先抓取必要的-JsonSerializer-，-绝大多数情况下不应该关闭此特性"><a href="#EAGER-SERIALIZER-FETCH-true-序列化是是否应当预先抓取必要的-JsonSerializer-，-绝大多数情况下不应该关闭此特性" class="headerlink" title="EAGER_SERIALIZER_FETCH(true): 序列化是是否应当预先抓取必要的 JsonSerializer ， 绝大多数情况下不应该关闭此特性"></a>EAGER_SERIALIZER_FETCH(true): 序列化是是否应当预先抓取必要的 <code>JsonSerializer</code> ， 绝大多数情况下不应该关闭此特性</h4><hr>
+<h4 id="USE-EQUALITY-FOR-OBJECT-ID-false"><a href="#USE-EQUALITY-FOR-OBJECT-ID-false" class="headerlink" title="USE_EQUALITY_FOR_OBJECT_ID(false)"></a>USE_EQUALITY_FOR_OBJECT_ID(false)</h4><p>;</p>
+<hr>
+<p>接下来是 反序列化时候的Feature ——</p>
+<h3 id="DeserializationFeature"><a href="#DeserializationFeature" class="headerlink" title="DeserializationFeature"></a>DeserializationFeature</h3><p>先来个最常用的：</p>
+<h4 id="FAIL-ON-UNKNOWN-PROPERTIES-：-反序列化遇到未知的字段的时候是否失败，-默认是-true-会失败"><a href="#FAIL-ON-UNKNOWN-PROPERTIES-：-反序列化遇到未知的字段的时候是否失败，-默认是-true-会失败" class="headerlink" title="FAIL_ON_UNKNOWN_PROPERTIES ： 反序列化遇到未知的字段的时候是否失败， 默认是 true 会失败"></a><code>FAIL_ON_UNKNOWN_PROPERTIES</code> ： 反序列化遇到未知的字段的时候是否失败， 默认是 true 会失败</h4>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Json/" rel="tag"># Json</a>
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/06/博客搭建/2016-07-06-markdown基本用法/" rel="next" title="MarkDown 基本语法">
+                <i class="fa fa-chevron-left"></i> MarkDown 基本语法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/15/技术/spring/2016-07-15-Spring揭秘读书笔记——IOC之BeanFactory/" rel="prev" title="Spring揭秘读书笔记 —— IOC BeanFactory">
+                Spring揭秘读书笔记 —— IOC BeanFactory <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Jackson-中的各种-Features"><span class="nav-number">1.</span> <span class="nav-text">Jackson 中的各种 Features</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SerializaitonFeature"><span class="nav-number">1.1.</span> <span class="nav-text">SerializaitonFeature</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#WRAP-ROOT-VALUE-false-序列化的json是否显示根节点"><span class="nav-number">1.1.1.</span> <span class="nav-text">WRAP_ROOT_VALUE(false) : 序列化的json是否显示根节点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#INDENT-OUTPUT-false-允许或禁止是否以缩进的方式展示json"><span class="nav-number">1.1.2.</span> <span class="nav-text">INDENT_OUTPUT(false): 允许或禁止是否以缩进的方式展示json</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FAIL-ON-EMPTY-BEANS-true-当类的一个属性外部无法访问-如：没有getter-setter-的私有属性-，且没有annotation-标明需要序列化时，如果FAIL-ON-EMPTY-BEANS-是true-将会跑出异常，如果是false-则不会跑出异常"><span class="nav-number">1.1.3.</span> <span class="nav-text">FAIL_ON_EMPTY_BEANS(true): 当类的一个属性外部无法访问(如：没有getter setter 的私有属性)，且没有annotation 标明需要序列化时，如果FAIL_ON_EMPTY_BEANS 是true 将会跑出异常，如果是false 则不会跑出异常</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FAIL-ON-SELF-REFERENCES-true"><span class="nav-number">1.1.4.</span> <span class="nav-text">FAIL_ON_SELF_REFERENCES(true)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRAP-EXCEPTIONS-true"><span class="nav-number">1.1.5.</span> <span class="nav-text">WRAP_EXCEPTIONS(true)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FAIL-ON-UNWRAPPED-TYPE-IDENTIFIERS-true"><span class="nav-number">1.1.6.</span> <span class="nav-text">FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS(true),</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CLOSE-CLOSEABLE-false"><span class="nav-number">1.1.7.</span> <span class="nav-text">CLOSE_CLOSEABLE(false),</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FLUSH-AFTER-WRITE-VALUE-true"><span class="nav-number">1.1.8.</span> <span class="nav-text">FLUSH_AFTER_WRITE_VALUE(true),</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-DATES-AS-TIMESTAMPS-true"><span class="nav-number">1.1.9.</span> <span class="nav-text">WRITE_DATES_AS_TIMESTAMPS(true),</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-DATE-KEYS-AS-TIMESTAMPS-false"><span class="nav-number">1.1.10.</span> <span class="nav-text">WRITE_DATE_KEYS_AS_TIMESTAMPS(false),</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-DATES-WITH-ZONE-ID-false"><span class="nav-number">1.1.11.</span> <span class="nav-text">WRITE_DATES_WITH_ZONE_ID(false),</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-DURATIONS-AS-TIMESTAMPS-true"><span class="nav-number">1.1.12.</span> <span class="nav-text">WRITE_DURATIONS_AS_TIMESTAMPS(true),</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-CHAR-ARRAYS-AS-JSON-ARRAYS-false-序列化json-的时候对于-char-为true-则解析成数组形式；-为false-则解析成一个字符串-String"><span class="nav-number">1.1.13.</span> <span class="nav-text">WRITE_CHAR_ARRAYS_AS_JSON_ARRAYS(false): 序列化json 的时候对于 char[] 为true 则解析成数组形式； 为false 则解析成一个字符串(String)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-ENUMS-USING-TO-STRING-false-序列化时，-enable-用枚举的-enum-toString-表示枚举值-disable-用枚举的-enum-name-表示枚举值"><span class="nav-number">1.1.14.</span> <span class="nav-text">WRITE_ENUMS_USING_TO_STRING(false): 序列化时， enable: 用枚举的 enum.toString() 表示枚举值 disable: 用枚举的 enum.name() 表示枚举值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-ENUMS-USING-INDEX-false-序列化时，用枚举的-enum-index-表示枚举值"><span class="nav-number">1.1.15.</span> <span class="nav-text">WRITE_ENUMS_USING_INDEX(false): 序列化时，用枚举的 enum.index() 表示枚举值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-NULL-MAP-VALUES-true-对于-Map-中的-null-值-是否序列化"><span class="nav-number">1.1.16.</span> <span class="nav-text">WRITE_NULL_MAP_VALUES(true): 对于 Map 中的 null 值 是否序列化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-EMPTY-JSON-ARRAYS-true-对于空的-Collection、-数组-为-true-则序列化，-为-false-则跳过，-默认为-true"><span class="nav-number">1.1.17.</span> <span class="nav-text">WRITE_EMPTY_JSON_ARRAYS(true): 对于空的 Collection、 数组 ; 为 true 则序列化， 为 false 则跳过， 默认为 true</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-SINGLE-ELEM-ARRAYS-UNWRAPPED-false-序列化json时，对于只有单个元素的数组，不用中括号-‘-’-括起来"><span class="nav-number">1.1.18.</span> <span class="nav-text">WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED(false): 序列化json时，对于只有单个元素的数组，不用中括号(‘[]’)括起来</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-BIGDECIMAL-AS-PLAIN-false-deprecated"><span class="nav-number">1.1.19.</span> <span class="nav-text">WRITE_BIGDECIMAL_AS_PLAIN(false): @deprecated</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WRITE-DATE-TIMESTAMPS-AS-NANOSECONDS-true-序列化json的时候把时间类型值序列化成纳秒的形式"><span class="nav-number">1.1.20.</span> <span class="nav-text">WRITE_DATE_TIMESTAMPS_AS_NANOSECONDS(true): 序列化json的时候把时间类型值序列化成纳秒的形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ORDER-MAP-ENTRIES-BY-KEYS-false-序列化-Map-的时候，-为-true-则按照-Map-的-key-进行排序，否则不排序"><span class="nav-number">1.1.21.</span> <span class="nav-text">ORDER_MAP_ENTRIES_BY_KEYS(false): 序列化 Map 的时候， 为 true 则按照 Map 的 key 进行排序，否则不排序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EAGER-SERIALIZER-FETCH-true-序列化是是否应当预先抓取必要的-JsonSerializer-，-绝大多数情况下不应该关闭此特性"><span class="nav-number">1.1.22.</span> <span class="nav-text">EAGER_SERIALIZER_FETCH(true): 序列化是是否应当预先抓取必要的 JsonSerializer ， 绝大多数情况下不应该关闭此特性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#USE-EQUALITY-FOR-OBJECT-ID-false"><span class="nav-number">1.1.23.</span> <span class="nav-text">USE_EQUALITY_FOR_OBJECT_ID(false)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DeserializationFeature"><span class="nav-number">1.2.</span> <span class="nav-text">DeserializationFeature</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#FAIL-ON-UNKNOWN-PROPERTIES-：-反序列化遇到未知的字段的时候是否失败，-默认是-true-会失败"><span class="nav-number">1.2.1.</span> <span class="nav-text">FAIL_ON_UNKNOWN_PROPERTIES ： 反序列化遇到未知的字段的时候是否失败， 默认是 true 会失败</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

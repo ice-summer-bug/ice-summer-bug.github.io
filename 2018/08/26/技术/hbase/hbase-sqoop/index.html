@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="HBase,Sqoop,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="了解HBase 基本操作，实践从 Mysql 同步数据到HBase">
+<meta name="keywords" content="HBase,Sqoop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HBase 简介和使用 Sqoop 同步 Mysql 数据到 HBase">
+<meta property="og:url" content="https://summerbuger.github.io/2018/08/26/技术/hbase/hbase-sqoop/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="了解HBase 基本操作，实践从 Mysql 同步数据到HBase">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.454Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HBase 简介和使用 Sqoop 同步 Mysql 数据到 HBase">
+<meta name="twitter:description" content="了解HBase 基本操作，实践从 Mysql 同步数据到HBase">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2018/08/26/技术/hbase/hbase-sqoop/">
+
+
+
+
+
+  <title>HBase 简介和使用 Sqoop 同步 Mysql 数据到 HBase | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2018/08/26/技术/hbase/hbase-sqoop/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">HBase 简介和使用 Sqoop 同步 Mysql 数据到 HBase</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-08-26T12:00:00+08:00">
+                2018-08-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/HBase/" itemprop="url" rel="index">
+                    <span itemprop="name">HBase</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  了解HBase 基本操作，实践从 Mysql 同步数据到HBase
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="HBase-数据模型"><a href="#HBase-数据模型" class="headerlink" title="HBase 数据模型"></a><code>HBase</code> 数据模型</h3><h4 id="Namespace-命名空间"><a href="#Namespace-命名空间" class="headerlink" title="Namespace: 命名空间"></a><code>Namespace</code>: 命名空间</h4><p>类似于关系型数据库中的 <code>database schema</code></p>
+<h4 id="Table-表"><a href="#Table-表" class="headerlink" title="Table: 表"></a><code>Table</code>: 表</h4><p>一个 <code>Namespace</code> 下有多个表，一个表可以包含多个行</p>
+<h4 id="Row-行"><a href="#Row-行" class="headerlink" title="Row: 行"></a><code>Row</code>: 行</h4><p>在 <code>HBase</code> 中 <code>Row</code> 由一个 <code>Row Key</code> 和一个或多个列及其值组成，数据值的存储按照 <code>Row Key</code> 的字典顺序存储的。</p>
+<h4 id="Column-列"><a href="#Column-列" class="headerlink" title="Column: 列"></a><code>Column</code>: 列</h4><p>在 <code>HBase</code> 中， 每个列有它所属的 <code>Column Family(列簇)</code>， 以及<code>Column Qualifier(列修饰符)</code>, 列名组成是 <code>Column Family:Column Qualifier</code></p>
+<h4 id="Column-Family-列簇"><a href="#Column-Family-列簇" class="headerlink" title="Column Family: 列簇"></a><code>Column Family</code>: 列簇</h4><p>在 <code>HBase</code> 中将列进行分类，每个列都有它所属的<code>列簇</code>，<code>列簇</code> 把列和相应的值物理上联合在一起。创建表的时候，必须指定至少一个 <code>列簇</code>。每个列出是一个存储属性的集合，</p>
+<h4 id="Column-Qualifier-列修饰符"><a href="#Column-Qualifier-列修饰符" class="headerlink" title="Column Qualifier: 列修饰符"></a><code>Column Qualifier</code>: 列修饰符</h4><p><code>列簇</code> 和 <code>列修饰符</code> 才是实际意义上的列唯一标识，假设存在 <code>列簇</code> content, 可以存在 <code>列修饰符</code> xml, 组成一个唯一的列标识 <code>content:xml</code>；创建表的时候，<code>列簇</code> 已经被指定了，但是 <code>列修饰符</code> 是可变的，可以再 <code>put</code> 指令中随意指定属于 <code>列簇</code> 的 <code>列修饰符</code>。</p>
+<h4 id="Cell"><a href="#Cell" class="headerlink" title="Cell"></a><code>Cell</code></h4><p>一个Cell是行，列簇和列修饰符的组合，并且包含一个值和时间戳，时间戳代表着值的版本。</p>
+<h4 id="Timestamp（时间戳）"><a href="#Timestamp（时间戳）" class="headerlink" title="Timestamp（时间戳）"></a><code>Timestamp</code>（时间戳）</h4><p>一个时间戳是连同值一起被写入的，是值版本的唯一标识，默认情况下，时间戳表示数据写入时RegionServer的时间，但是当你在写数据到Cell的时候，你可以指定一个不同的时间戳。</p>
+<h3 id="HBase-常用指令"><a href="#HBase-常用指令" class="headerlink" title="HBase 常用指令"></a><code>HBase</code> 常用指令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&gt;</span><span class="bash"> create_namespace <span class="string">'n1'</span> //  创建一个 namespace n1</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> list_namespace        //  列出所有的 namespace</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> create <span class="string">'n1:t1'</span>, <span class="string">'CF1'</span>, <span class="string">'CF2'</span> // 创建表 t1</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> list_namespace_tables <span class="string">'n1'</span>   // 列出 namespace n1 下的所有 table</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> describe <span class="string">'n1:t1'</span>      //  查看表结构</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> put <span class="string">'n1:t1'</span>, <span class="string">'rk'</span>, <span class="string">'CF1:name'</span>, <span class="string">'test'</span> // 往表 n1:t1 中 row key 是 rk 的行中插入列名称是 CF1:name 的值 <span class="string">'test'</span></span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> get <span class="string">'n1:t1'</span>, <span class="string">'rk'</span> // 获取表 <span class="string">'n1:t1'</span> 中 row key 是 rk 的所有数据</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> scan <span class="string">'n1:t1'</span>      // 模糊查看表 n1:t1</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> scan <span class="string">'n1:t1'</span>, FILTER=&gt;<span class="string">"ColumnPrefixFilter('name') AND ValueFilter(=,'substring:test')"</span>  // 模糊查询，列修饰符前缀为name 且值中包含字段 <span class="built_in">test</span> 的数据</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> delete <span class="string">'n1:t1'</span>, <span class="string">'rk'</span>, <span class="string">'CF1:name'</span> // 删除 row key 是 rk 列 `CF1:name` 的数据</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> <span class="built_in">disable</span> <span class="string">'n1:t1'</span>      // 禁用表 n1:t1，被被删除之前必须先被禁用</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> is_enabled <span class="string">'n1:t1'</span>   // 查看表 n1:t1 是否可用</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> is_disabled <span class="string">'n1:t1'</span>  // 查看表 n1:t1 是否被禁用</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> <span class="built_in">enable</span> <span class="string">'n1:t1'</span>       // 启用表 n1:t1</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> drop <span class="string">'n1:t1'</span>         // 删除表 n1:t1，注意：只能删除被禁用的表</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash"> drop_namespace <span class="string">'n1'</span>  // 删除命名空间 n1，注意：只能删除没有表的 namespace</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="sqoop-导出-mysql-数据到-HBase"><a href="#sqoop-导出-mysql-数据到-HBase" class="headerlink" title="sqoop 导出 mysql 数据到 HBase"></a><code>sqoop</code> 导出 <code>mysql</code> 数据到 <code>HBase</code></h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">export HADOOP_CLASSPATH=/absolute/path/to/mysql-connector-java-5.1.15.jar  </span><br><span class="line">sqoop import --connect jdbc:mysql://ip:port/database_name --username 'username' --password 'password' --table 'table_name' --columns "id,name,code,description" --hbase-table 'test:hbase_table_name' --hbase-create-table --hbase-row-key 'id,code' --column-family info</span><br></pre></td></tr></table></figure>
+
+<p>上述命令行解析</p>
+<ol>
+<li><p>设置 <code>HADOOP_CLASSPATH</code><br><br>首先需要设置 <code>HADOOP_CLASSPATH</code>，值是 <code>mysql-connector-java-5.1.15.jar</code> 的绝对路径，否则会报错：<code>java.lang.RuntimeException: Could not load db driver class: com.mysql.jdbc.Driver</code></p>
+</li>
+<li><p><code>--connect</code><br><br>连接数据库的url，从这个数据库中导出数据</p>
+</li>
+<li><p><code>--username</code><br><br>数据库用户名</p>
+</li>
+<li><p><code>--password</code><br><br>数据库密码</p>
+</li>
+<li><p><code>--table</code><br><br>导出数据的源数据库表</p>
+</li>
+<li><p><code>--columns</code><br><br>本次导出的数据，可以一次导出多列，用逗号分隔，导出的列在hbase 中属于 <code>--column family</code> 参数指定的列簇，列名称是  <code>column family:mysql表中的列名</code>，需要注意的是，如果没有指定参数 <code>--hbase-row-key</code>，在hbase 表中的row key 将是 <code>--columns</code> 中第一列。</p>
+</li>
+<li><p><code>--hbase-table</code><br><br>本次导入数据的 hbase 表，需要注意的是导入数据的hbase 表可以不存在，但是hbase 表所属的 namespace 必须是存在的，否则会报错：<br></p>
+<pre><code>Import failed: org.apache.hadoop.hbase.NamespaceNotFoundException: org.apache.hadoop.hbase.NamespaceNotFoundException: &apos;namespace&apos;</code></pre></li>
+<li><p><code>--hbase-create-table</code><br><br>如果导入数据的表不存在，则创建该表</p>
+</li>
+<li><p><code>--hbase-row-key</code><br><br>设置 hbase 中的 <code>Row Key</code>，参数值是mysql 表中的列名，可以设置多个列合并成 <code>Row Key</code>, 用逗号分隔</p>
+</li>
+<li><p><code>--column-family</code><br><br>指定导入数据所属的列簇，每次导入数据只能导入属于同一个<code>列簇</code> 的数据，如果 mysql 表中数据属于多个 <code>列簇</code>，只能通过多条指令分批导入。</p>
+</li>
+</ol>
+<p><strong><em>注意：上述指令没有指定列分隔符和行分隔符，默认的列分隔符是 <code>&#39;\001&#39;</code>，在less 中显示是 <code>^A</code>；默认的行分隔符是 <code>&#39;\n&#39;</code>。</em></strong></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/HBase/" rel="tag"># HBase</a>
+          
+            <a href="/tags/Sqoop/" rel="tag"># Sqoop</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/01/计算广告/点击率预估简要介绍/" rel="next" title="《程序化广告——个性化精准投放实用手册》常见问题导读">
+                <i class="fa fa-chevron-left"></i> 《程序化广告——个性化精准投放实用手册》常见问题导读
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/28/技术/tomcat/tomcat的日志配置/" rel="prev" title="Tomcat 日志配置说明">
+                Tomcat 日志配置说明 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#HBase-数据模型"><span class="nav-number">1.</span> <span class="nav-text">HBase 数据模型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Namespace-命名空间"><span class="nav-number">1.1.</span> <span class="nav-text">Namespace: 命名空间</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Table-表"><span class="nav-number">1.2.</span> <span class="nav-text">Table: 表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Row-行"><span class="nav-number">1.3.</span> <span class="nav-text">Row: 行</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Column-列"><span class="nav-number">1.4.</span> <span class="nav-text">Column: 列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Column-Family-列簇"><span class="nav-number">1.5.</span> <span class="nav-text">Column Family: 列簇</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Column-Qualifier-列修饰符"><span class="nav-number">1.6.</span> <span class="nav-text">Column Qualifier: 列修饰符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cell"><span class="nav-number">1.7.</span> <span class="nav-text">Cell</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Timestamp（时间戳）"><span class="nav-number">1.8.</span> <span class="nav-text">Timestamp（时间戳）</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HBase-常用指令"><span class="nav-number">2.</span> <span class="nav-text">HBase 常用指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sqoop-导出-mysql-数据到-HBase"><span class="nav-number">3.</span> <span class="nav-text">sqoop 导出 mysql 数据到 HBase</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

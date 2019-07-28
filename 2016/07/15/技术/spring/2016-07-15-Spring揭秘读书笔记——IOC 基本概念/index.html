@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Spring,《Spring揭秘》,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="《Spring揭秘》学习系列，回顾IOC 基本概念">
+<meta name="keywords" content="Spring,《Spring揭秘》">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring揭秘读书笔记 —— IOC 基本概念">
+<meta property="og:url" content="https://summerbuger.github.io/2016/07/15/技术/spring/2016-07-15-Spring揭秘读书笔记——IOC 基本概念/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="《Spring揭秘》学习系列，回顾IOC 基本概念">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/iocmetaphor.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/ioc.interfaceinsert.demo.png">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.462Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring揭秘读书笔记 —— IOC 基本概念">
+<meta name="twitter:description" content="《Spring揭秘》学习系列，回顾IOC 基本概念">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/iocmetaphor.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2016/07/15/技术/spring/2016-07-15-Spring揭秘读书笔记——IOC 基本概念/">
+
+
+
+
+
+  <title>Spring揭秘读书笔记 —— IOC 基本概念 | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2016/07/15/技术/spring/2016-07-15-Spring揭秘读书笔记——IOC 基本概念/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Spring揭秘读书笔记 —— IOC 基本概念</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-07-15T21:00:00+08:00">
+                2016-07-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  《Spring揭秘》学习系列，回顾IOC 基本概念
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>一直在使用Spring 这一开源项目， 但是在学习spring 的过程中一直没遇到让我心旷神怡的好书，看过 <code>《Spring技术内幕：深入解析Spring架构与设计原理（第2版）》</code>， 从源码角度讲解spring， 虽然也很不错， 但是略感枯燥。  另外就是开涛大神的 <code>跟我学Spring</code>(<a href="http://jinnianshilongnian.iteye.com/blog/1482071" target="_blank" rel="noopener">http://jinnianshilongnian.iteye.com/blog/1482071</a>) 和 <code>跟我学Spring MVC</code>(<a href="http://jinnianshilongnian.iteye.com/blog/1617451" target="_blank" rel="noopener">http://jinnianshilongnian.iteye.com/blog/1617451</a>), 这两个系列的博客，主要是从使用Spring 的角度出发，很适合初学者系列的学习Spring 的使用以及一些Spring 的原理。</p>
+<h6 id="以上对两位大神的著作的评论仅属个人言论，欢迎大家指正"><a href="#以上对两位大神的著作的评论仅属个人言论，欢迎大家指正" class="headerlink" title="以上对两位大神的著作的评论仅属个人言论，欢迎大家指正"></a>以上对两位大神的著作的评论仅属个人言论，欢迎大家指正</h6><p>最近接触到一本比较 <code>古老</code> 的 Spring 学习书籍 ———— <code>《Spring揭秘》</code> , 这本书貌似现在已经停刊了，讲的 Spring 也是将的 <code>Spring 2.X</code> , 但是 Spring 的主要思想，在这本书中被作者用一种通俗易懂的语言表达的让人能一边看，一边笑着点头， 甚是舒畅。</p>
+<hr>
+<h2 id="IoC的基本概念读书笔记"><a href="#IoC的基本概念读书笔记" class="headerlink" title="IoC的基本概念读书笔记"></a>IoC的基本概念读书笔记</h2><h4 id="IoC-控制反转-————-我们的理念是：让别人为你服务"><a href="#IoC-控制反转-————-我们的理念是：让别人为你服务" class="headerlink" title="IoC [控制反转] ———— 我们的理念是：让别人为你服务"></a>IoC [控制反转] ———— 我们的理念是：让别人为你服务</h4><p>书中的比喻很形象<br><img src="/assets/picture/iocmetaphor.png" alt title="IoC形象比喻"></p>
+<p>常见的 Ioc 实现方法</p>
+<ol>
+<li>构造方法注入</li>
+<li>setter方法注入</li>
+<li>接口注入</li>
+</ol>
+<p>三种方法中 <code>接口注入</code> 较为难理解<br>被注入的对象要想 Ioc Service Provider 为其注入依赖对象， 就要实现一个特定接口，特定的接口提供一个方法，用来为其注入一个依赖对象，这个特性接口就如同是上图比喻中的 “拿衣服的女朋友”</p>
+<p>示例：<br><img src="/assets/picture/ioc.interfaceinsert.demo.png" alt><br>FxNewsProvider 希望能被注入依赖 IFXNewsListener, 使用接口注入时，实现 FXNewsListenerCallable 接口  FXNewListenerCallable 接口提供了 injectNewsListener 方法, 这个方法的参数的类型就是 IFXNewsListenr</p>
+<p><code>接口注入</code>这种注入方式目前已经过时，不提倡使用</p>
+<p><code>构造方法注入</code> 在对象构造完之后，就会立即进入就绪状态，可以马上使用。但是如果依赖的对象比较多，构造方法的参数列表会比较长，而且<code>构造方法注入</code>底层实现还是基于反射机制，而反射机制对于构造方法中相同类型的参数处理会有困难；而且构造方法不能被继承，不能设置默认值</p>
+<p><code>setter方法注入</code> setter 方法参数单一，反射机制可以很好的支持，而且setter 方法能被继承，能够设置默认值</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spring/" rel="tag"># Spring</a>
+          
+            <a href="/tags/《Spring揭秘》/" rel="tag"># 《Spring揭秘》</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/15/技术/spring/2016-07-15-Spring揭秘读书笔记——IOC之BeanFactory/" rel="next" title="Spring揭秘读书笔记 —— IOC BeanFactory">
+                <i class="fa fa-chevron-left"></i> Spring揭秘读书笔记 —— IOC BeanFactory
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/16/技术/spring/2016-07-16-Spring揭秘读书笔记——如何干涉IOC容器/" rel="prev" title="Spring揭秘读书笔记 —— 如何干涉IOC容器">
+                Spring揭秘读书笔记 —— 如何干涉IOC容器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#以上对两位大神的著作的评论仅属个人言论，欢迎大家指正"><span class="nav-number">1.0.0.1.</span> <span class="nav-text">以上对两位大神的著作的评论仅属个人言论，欢迎大家指正</span></a></li></ol></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#IoC的基本概念读书笔记"><span class="nav-number"></span> <span class="nav-text">IoC的基本概念读书笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IoC-控制反转-————-我们的理念是：让别人为你服务"><span class="nav-number">0.1.</span> <span class="nav-text">IoC [控制反转] ———— 我们的理念是：让别人为你服务</span></a></li></ol></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

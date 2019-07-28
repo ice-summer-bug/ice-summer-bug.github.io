@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Java,MyBatis,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="MyBatis 启动流程源码学习">
+<meta name="keywords" content="Java,MyBatis">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mybatis 源码阅读(一)">
+<meta property="og:url" content="https://summerbuger.github.io/2016/09/20/技术/mybatis/2016-09-20-mybatis源码阅读/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="MyBatis 启动流程源码学习">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/mybatis_source_to_configuration.png">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.458Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mybatis 源码阅读(一)">
+<meta name="twitter:description" content="MyBatis 启动流程源码学习">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/mybatis_source_to_configuration.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2016/09/20/技术/mybatis/2016-09-20-mybatis源码阅读/">
+
+
+
+
+
+  <title>mybatis 源码阅读(一) | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2016/09/20/技术/mybatis/2016-09-20-mybatis源码阅读/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">mybatis 源码阅读(一)</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-20T21:00:00+08:00">
+                2016-09-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/MyBatis/" itemprop="url" rel="index">
+                    <span itemprop="name">MyBatis</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  MyBatis 启动流程源码学习
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h6 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h6><p>我们开始从mybatis 启动流程开始阅读源码</p>
+<p><code>mybatis</code> 的配置信息层次结构：</p>
+<blockquote>
+<p>configuration</p>
+<blockquote>
+<p>properties</p>
+</blockquote>
+<blockquote>
+<p>settings</p>
+</blockquote>
+<blockquote>
+<p>typeAliases</p>
+</blockquote>
+<blockquote>
+<p>typeHandlers</p>
+</blockquote>
+<blockquote>
+<p>objectFactory</p>
+<p>objectWrapperFactory</p>
+<p>reflectorFactory</p>
+<p>plugins</p>
+<p>environments</p>
+<blockquote>
+<p>transactionManager</p>
+</blockquote>
+<blockquote>
+<p>dataSource</p>
+</blockquote>
+<p>databaseIdProvider</p>
+<p>mappers</p>
+</blockquote>
+</blockquote>
+<p>无论是结合 <code>Spring</code> 使用 <code>Mybatis</code> 还是单独使用，在启动的时候都需要经过这个入口 <code>SqlSessionFactoryBuilder</code> 来构建  <code>SqlSessionFactory</code></p>
+<p>使用 <code>SqlSessionFactoryBuilder</code> 构建  <code>SqlSessionFactory</code> 有两种方：编码方式，Xml 配置方式；</p>
+<p>获取  <code>SqlSessionFactory</code> 的主体调用流程如下：<br>org.apache.ibatis.session.SqlSessionFactoryBuilder#build(Reader or InputStream);<br>org.apache.ibatis.builder.xml.XMLConfigBuilder#XMLConfigBuilder();<br>org.apache.ibatis.builder.xml.XMLConfigBuilder#parse<br>org.apache.ibatis.builder.xml.XMLConfigBuilder#parseConfiguration<br>org.apache.ibatis.session.SqlSessionFactoryBuilder#build(org.apache.ibatis.session.Configuration)<br>得到的 <code>SqlSessionFactory</code> 的默认实现 <code>DefaultSqlSessionFactory</code></p>
+<p>编码方式这里不做赘述， 配置文件的方式主要流程如下得到 <code>Configuration</code><br><img src="/assets/picture/mybatis_source_to_configuration.png" alt="图片" title="加载mybatis 配置信息的途径"></p>
+<p>xml 配置方式主要依赖 <code>XMLConfigBuilder</code> 来解析配置文件</p>
+<pre><code>private void parseConfiguration(XNode root) {
+    try {
+      //issue #117 read properties first
+      //解析 xml 中 &lt;properties&gt; 标签，主要是解析url 和 resource， 需要注意的是这两个配置不能同时存在
+      propertiesElement(root.evalNode(&quot;properties&quot;));
+      // 注册 type aliase 可以使用 package 扫描一个文件夹中的所有 带@Alias 注解的所有类
+      // [注意] alias 会忽略大小写 toLowCase
+      typeAliasesElement(root.evalNode(&quot;typeAliases&quot;));
+      pluginElement(root.evalNode(&quot;plugins&quot;));
+      // MyBatis uses an `ObjectFactory` to create all needed new Objects.
+      objectFactoryElement(root.evalNode(&quot;objectFactory&quot;));
+      //
+      objectWrapperFactoryElement(root.evalNode(&quot;objectWrapperFactory&quot;));
+      reflectionFactoryElement(root.evalNode(&quot;reflectionFactory&quot;));
+      settingsElement(root.evalNode(&quot;settings&quot;));
+      // read it after objectFactory and objectWrapperFactory issue #631
+      //
+      environmentsElement(root.evalNode(&quot;environments&quot;));
+      // 通过xml 中设置的type 别名构建 DatabaseIdProvider， 默认为 VendorDatabaseIdProvider
+      // 再通过 DatabaseIdProvider 获取 databaseId， 设置到 Configuration.databaseId
+      databaseIdProviderElement(root.evalNode(&quot;databaseIdProvider&quot;));
+      // TypeHander 对应一个 Class 以及一个 JdbcType
+      // 注册 TypeHander 时可以一个个的注册，也可以注册一个 package 中所有实现了 `TypeHandler` 接口的类
+      // 通过继承 BaseTypeHandler 自定义的TypeHander
+      // TypeHandler 如果没有通过 @MappedJdbcTypes 指定的JdbcType 则为null
+      typeHandlerElement(root.evalNode(&quot;typeHandlers&quot;));
+      mapperElement(root.evalNode(&quot;mappers&quot;));
+    } catch (Exception e) {
+      throw new BuilderException(&quot;Error parsing SQL Mapper Configuration. Cause: &quot; + e, e);
+    }
+  }</code></pre><p>mybatis 的重要组成部分是 mapper xml 文件，对于这些文件的解析很重要<br>解析 package 中的接口时，获取 package 下的所有接口， 依次直接使用 <code>MapperRegister</code> 注册 Interface –&gt; MapperProxyFactory</p>
+<p>使用 <mapper> 标签中的 <code>mapperClass</code> 配置接口信息， 也是 <code>MapperRegister</code> 注册 Interface –&gt; MapperProxyFactory</mapper></p>
+<p>使用 <mapper> 标签中的 <code>url</code> 或 <code>resource</code> 配置 mapper xml 文件的路径， 使用 <code>XmlMappperBuilder</code> 解析 xml 文件</mapper></p>
+<p>这里先介绍 <code>MapperRegister</code> <code>MapperProxyFactory</code></p>
+<p><code>MapperRegister</code> 中保存了 Interface –&gt; MapperProxyFactory 的map</p>
+<p><code>mybatis</code> 中大量使用了设计模式， <code>MapperProxyFactory</code> 使用了工厂模式<br><code>MapperProxyFactory</code> 一看就是生产 <code>MapperProxy</code> 的工厂类， 提供 org.apache.ibatis.binding.MapperProxyFactory#newInstance(org.apache.ibatis.session.SqlSession)<br>方法获取 Mapper Interface 的实现类</p>
+<p><code>MapperProxy</code> 是java 动态代理的使用，<code>MapperProxy</code> 实现了 <code>InvocationHandler</code> 接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *    Copyright 2009-2015 the original author or authors.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *    Licensed under the Apache License, Version 2.0 (the "License");</span></span><br><span class="line"><span class="comment"> *    you may not use this file except in compliance with the License.</span></span><br><span class="line"><span class="comment"> *    You may obtain a copy of the License at</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *       http://www.apache.org/licenses/LICENSE-2.0</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *    Unless required by applicable law or agreed to in writing, software</span></span><br><span class="line"><span class="comment"> *    distributed under the License is distributed on an "AS IS" BASIS,</span></span><br><span class="line"><span class="comment"> *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span></span><br><span class="line"><span class="comment"> *    See the License for the specific language governing permissions and</span></span><br><span class="line"><span class="comment"> *    limitations under the License.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">package</span> org.apache.ibatis.binding;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Proxy;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ConcurrentHashMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.session.SqlSession;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> Lasse Voss</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MapperProxyFactory</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// MapperProxy 代理的 Mapper 接口</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Class&lt;T&gt; mapperInterface;</span><br><span class="line">  <span class="comment">// 这里的Key 是 Mapper 接口中方法对象，Value 是方法对象的封装</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;Method, MapperMethod&gt; methodCache = <span class="keyword">new</span> ConcurrentHashMap&lt;Method, MapperMethod&gt;();</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">MapperProxyFactory</span><span class="params">(Class&lt;T&gt; mapperInterface)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.mapperInterface = mapperInterface;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Class&lt;T&gt; <span class="title">getMapperInterface</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> mapperInterface;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Map&lt;Method, MapperMethod&gt; <span class="title">getMethodCache</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> methodCache;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="meta">@SuppressWarnings</span>(<span class="string">"unchecked"</span>)</span><br><span class="line">  <span class="function"><span class="keyword">protected</span> T <span class="title">newInstance</span><span class="params">(MapperProxy&lt;T&gt; mapperProxy)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), <span class="keyword">new</span> Class[] &#123; mapperInterface &#125;, mapperProxy);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 通过 Sqlsession 获取 Mapper 接口</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> T <span class="title">newInstance</span><span class="params">(SqlSession sqlSession)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> MapperProxy&lt;T&gt; mapperProxy = <span class="keyword">new</span> MapperProxy&lt;T&gt;(sqlSession, mapperInterface, methodCache);</span><br><span class="line">    <span class="keyword">return</span> newInstance(mapperProxy);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Configuration</code>: mybatis 配置信息的根节点</p>
+<pre><code>public Configuration() {
+    // 这里注册了很多类的别名，在需要的时候通过反射机制获取 类的实例
+    typeAliasRegistry.registerAlias(&quot;JDBC&quot;, JdbcTransactionFactory.class);
+    typeAliasRegistry.registerAlias(&quot;MANAGED&quot;, ManagedTransactionFactory.class);
+
+    typeAliasRegistry.registerAlias(&quot;JNDI&quot;, JndiDataSourceFactory.class);
+    typeAliasRegistry.registerAlias(&quot;POOLED&quot;, PooledDataSourceFactory.class);
+    typeAliasRegistry.registerAlias(&quot;UNPOOLED&quot;, UnpooledDataSourceFactory.class);
+
+    typeAliasRegistry.registerAlias(&quot;PERPETUAL&quot;, PerpetualCache.class);
+    typeAliasRegistry.registerAlias(&quot;FIFO&quot;, FifoCache.class);
+    typeAliasRegistry.registerAlias(&quot;LRU&quot;, LruCache.class);
+    typeAliasRegistry.registerAlias(&quot;SOFT&quot;, SoftCache.class);
+    typeAliasRegistry.registerAlias(&quot;WEAK&quot;, WeakCache.class);
+
+    typeAliasRegistry.registerAlias(&quot;DB_VENDOR&quot;, VendorDatabaseIdProvider.class);
+
+    typeAliasRegistry.registerAlias(&quot;XML&quot;, XMLLanguageDriver.class);
+    typeAliasRegistry.registerAlias(&quot;RAW&quot;, RawLanguageDriver.class);
+
+    typeAliasRegistry.registerAlias(&quot;SLF4J&quot;, Slf4jImpl.class);
+    typeAliasRegistry.registerAlias(&quot;COMMONS_LOGGING&quot;, JakartaCommonsLoggingImpl.class);
+    typeAliasRegistry.registerAlias(&quot;LOG4J&quot;, Log4jImpl.class);
+    typeAliasRegistry.registerAlias(&quot;LOG4J2&quot;, Log4j2Impl.class);
+    typeAliasRegistry.registerAlias(&quot;JDK_LOGGING&quot;, Jdk14LoggingImpl.class);
+    typeAliasRegistry.registerAlias(&quot;STDOUT_LOGGING&quot;, StdOutImpl.class);
+    typeAliasRegistry.registerAlias(&quot;NO_LOGGING&quot;, NoLoggingImpl.class);
+
+    typeAliasRegistry.registerAlias(&quot;CGLIB&quot;, CglibProxyFactory.class);
+    typeAliasRegistry.registerAlias(&quot;JAVASSIST&quot;, JavassistProxyFactory.class);
+
+    // 注册语言管理驱动，默认语言管理驱动为：`XMLLanguageDriver`
+    languageRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
+    languageRegistry.register(RawLanguageDriver.class);
+  }</code></pre><p><code>ObjectFactory</code>:</p>
+<p><code>Reflector</code></p>
+<p><code>ObjectWrapper</code></p>
+<p><code>TransactionFactory</code></p>
+<p><code>TypeAliasRegistry</code></p>
+<p><code>LanguageRegistry</code></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/MyBatis/" rel="tag"># MyBatis</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/09/13/技术/java/2016-09-13-CPU占用过高处理过程/" rel="next" title="线上应用故障排查">
+                <i class="fa fa-chevron-left"></i> 线上应用故障排查
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/16/技术/mybatis/2016-10-16-mybatis-XMLMapperBuilder/" rel="prev" title="mybatis 中的 Configuration">
+                mybatis 中的 Configuration <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-6"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Spring,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="如何正确的创建 prototype 类型的 bean">
+<meta name="keywords" content="Spring">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何正确的创建 prototype 类型的 bean">
+<meta property="og:url" content="https://summerbuger.github.io/2017/03/01/技术/spring/2017-03-01-Spring使用过程中遇到的问题/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="如何正确的创建 prototype 类型的 bean">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/prototypebeaninfo.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/prototypecomponent.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/realProtoTypeComponent1.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/realProtoTypeComponent2.png">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.464Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何正确的创建 prototype 类型的 bean">
+<meta name="twitter:description" content="如何正确的创建 prototype 类型的 bean">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/prototypebeaninfo.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2017/03/01/技术/spring/2017-03-01-Spring使用过程中遇到的问题/">
+
+
+
+
+
+  <title>如何正确的创建 prototype 类型的 bean | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2017/03/01/技术/spring/2017-03-01-Spring使用过程中遇到的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">如何正确的创建 prototype 类型的 bean</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-01T21:00:00+08:00">
+                2017-03-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index">
+                    <span itemprop="name">Spring</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  如何正确的创建 prototype 类型的 bean
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>这里把使用 <code>Spring</code> 过程中遇到的问题做个记录，有些给出了解决方案，有些没有，欢迎同道读者斧正！</p>
+<h2 id="如何正确的创建-prototype-类型的-Spring-bean"><a href="#如何正确的创建-prototype-类型的-Spring-bean" class="headerlink" title="如何正确的创建 prototype 类型的 Spring bean"></a>如何正确的创建 <code>prototype</code> 类型的 <code>Spring bean</code></h2><p>这里先尝试的去创建一个 <code>prototype</code> 的 <code>bean</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Scope</span>(ConfigurableBeanFactory.SCOPE_PROTOTYPE)</span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProtoTypeComponent</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> random;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">ProtoTypeComponent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="comment">// random 值设置为一个随机值，</span></span><br><span class="line">    <span class="keyword">this</span>.random = ThreadLocalRandom.current().nextInt(<span class="number">100000</span>);</span><br><span class="line">    LOGGER.info(<span class="string">"create a new ProtoTypeComponent with random:&#123;&#125;"</span>, random);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRandom</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> random;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，我们在Controller 中注入这个 <code>prototype bean</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Resource</span></span><br><span class="line">  <span class="keyword">private</span> ProtoTypeComponent protoTypeComponent;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@RequestMapping</span>(value = <span class="string">"/hello"</span>)</span><br><span class="line">  <span class="meta">@ResponseBody</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Object <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"&#123;\"class\": \""</span> + protoTypeComponent + <span class="string">"\", \"random\":\""</span></span><br><span class="line">        + protoTypeComponent.getRandom() + <span class="string">"\"&#125;"</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们开始请求这个 http 接口</p>
+<p><img src="/assets/picture/prototypebeaninfo.png" alt title="请求上方 /hello 接口获取 prototype bean 信息"></p>
+<p>不断的刷新页面，返回的结果都是一模一样！我们再来看看日志</p>
+<p><img src="/assets/picture/prototypecomponent.png" alt title="请求上方 /hello 接口时的日志信息"></p>
+<p>从上面的日志上我们看到这个 <code>prototype bean</code> 的构造方法只被调用了一次！</p>
+<p>到这里，我感到奇怪了，为什么这个 <code>prototype bean</code> 成了 <code>singleton bean</code> 了？</p>
+<p>这个时候我想了 《Spring揭秘》 中看到的正解， 之前这个现象出现的原因是 <code>HelloController</code> 是 <code>singleton</code> 类型的，这个 <code>bean</code> 只会被初始化一次， 而 <code>HelloController</code> 依赖的 <code>ProtoTypeComponent</code> 也只会被注入一次！<br>到这里，谜底揭晓：</p>
+<p><em><code>singleton bean</code> 依赖的 <code>prototype bean</code> 会 “变成” <code>singleton bean</code></em></p>
+<p>这里，解决这个问题的第一个方案也出现了：</p>
+<h6 id="依赖-prototype-bean-也必须是-prototype-bean"><a href="#依赖-prototype-bean-也必须是-prototype-bean" class="headerlink" title="依赖 prototype bean 也必须是 prototype bean"></a>依赖 <code>prototype bean</code> 也必须是 <code>prototype bean</code></h6><p>很明显这个方案不能解决很多状况， 我们继续这个问题</p>
+<p>再来翻翻 <code>《Spring 揭秘》</code> 找找答案<br>我们看到了两个答案</p>
+<ol>
+<li>使用方法注入</li>
+<li>继承 ApplicationContextAware 每次去获取bean</li>
+</ol>
+<h5 id="使用方法注入"><a href="#使用方法注入" class="headerlink" title="使用方法注入"></a>使用方法注入</h5><p>在传统的 xml 配置方式中我们需要这样配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"protoTypeBean"</span> <span class="attr">class</span>=<span class="string">"...impl.ProtoTypeService"</span> <span class="attr">singleton</span>=<span class="string">"false"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span> = <span class="string">"...impl.SimpleServiceImpl"</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">lookup-method</span> <span class="attr">name</span>=<span class="string">"getProtoTypeBean"</span> <span class="attr">bean</span>=<span class="string">"protoTypeBean"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>getProtoTypeBean 方法定义如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> ProtoTypeService protoTypeBean;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> ProtoTypeService <span class="title">getProtoTypeBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> protoTypeBean;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在我们更倾向于使用注解，那么基于注解怎么实现上面这种方式呢？<br>我们这里引入 <code>@Lookup</code> 注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * An annotation that indicates 'lookup' methods, to be overridden by the container</span></span><br><span class="line"><span class="comment"> * to redirect them back to the &#123;<span class="doctag">@link</span> org.springframework.beans.factory.BeanFactory&#125;</span></span><br><span class="line"><span class="comment"> * for a &#123;<span class="doctag">@code</span> getBean&#125; call. This is essentially an annotation-based version of the</span></span><br><span class="line"><span class="comment"> * XML &#123;<span class="doctag">@code</span> lookup-method&#125; attribute, resulting in the same runtime arrangement.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;The resolution of the target bean can either be based on the return type</span></span><br><span class="line"><span class="comment"> * (&#123;<span class="doctag">@code</span> getBean(Class)&#125;) or on a suggested bean name (&#123;<span class="doctag">@code</span> getBean(String)&#125;),</span></span><br><span class="line"><span class="comment"> * in both cases passing the method's arguments to the &#123;<span class="doctag">@code</span> getBean&#125; call</span></span><br><span class="line"><span class="comment"> * for applying them as target factory method arguments or constructor arguments.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;Such lookup methods can have default (stub) implementations that will simply</span></span><br><span class="line"><span class="comment"> * get replaced by the container, or they can be declared as abstract - for the</span></span><br><span class="line"><span class="comment"> * container to fill them in at runtime. In both cases, the container will generate</span></span><br><span class="line"><span class="comment"> * runtime subclasses of the method's containing class via CGLIB, which is why such</span></span><br><span class="line"><span class="comment"> * lookup methods can only work on beans that the container instantiates through</span></span><br><span class="line"><span class="comment"> * regular constructors: i.e. lookup methods cannot get replaced on beans returned</span></span><br><span class="line"><span class="comment"> * from factory methods where we cannot dynamically provide a subclass for them.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;&lt;b&gt;Concrete limitations in typical Spring configuration scenarios:&lt;/b&gt;</span></span><br><span class="line"><span class="comment"> * When used with component scanning or any other mechanism that filters out abstract</span></span><br><span class="line"><span class="comment"> * beans, provide stub implementations of your lookup methods to be able to declare</span></span><br><span class="line"><span class="comment"> * them as concrete classes. And please remember that lookup methods won't work on</span></span><br><span class="line"><span class="comment"> * beans returned from &#123;<span class="doctag">@code</span> <span class="doctag">@Bean</span>&#125; methods in configuration classes; you'll have</span></span><br><span class="line"><span class="comment"> * to resort to &#123;<span class="doctag">@code</span> <span class="doctag">@Inject</span> Provider&amp;lt;TargetBean&amp;gt;&#125; or the like instead.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> Juergen Hoeller</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 4.1</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> org.springframework.beans.factory.BeanFactory#getBean(Class, Object...)</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> org.springframework.beans.factory.BeanFactory#getBean(String, Object...)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Target</span>(ElementType.METHOD)</span><br><span class="line"><span class="meta">@Retention</span>(RetentionPolicy.RUNTIME)</span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Lookup &#123;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * This annotation attribute may suggest a target bean name to look up.</span></span><br><span class="line"><span class="comment">	 * If not specified, the target bean will be resolved based on the</span></span><br><span class="line"><span class="comment">	 * annotated method's return type declaration.</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> ""</span>;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码能看出：<br>这个注解只能修饰方法，根据方法的返回值类型创建对应的Bean，底层机制是调用 <code>org.springframework.beans.factory.BeanFactory#getBean(Class, Object...)</code> 或 <code>org.springframework.beans.factory.BeanFactory#getBean(String, Object...)</code></p>
+<p>先来使用 <code>@Lookup</code> 注解改成一下我们尝试创建 有状态的 <code>prototype bean</code></p>
+<p>修正的代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> ProtoTypeComponent protoTypeComponent;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@RequestMapping</span>(value = <span class="string">"/hello"</span>)</span><br><span class="line">  <span class="meta">@ResponseBody</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Object <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ProtoTypeComponent component = getProtoTypeComponent();</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"&#123;\"class\": \""</span> + component + <span class="string">"\", \"random\":\""</span></span><br><span class="line">        + component.getRandom() + <span class="string">"\"&#125;"</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Lookup</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> ProtoTypeComponent <span class="title">getProtoTypeComponent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> protoTypeComponent;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>让我们运行起 <code>tomcat</code> 看看结果：</p>
+<p><img src="/assets/picture/realProtoTypeComponent1.png" alt><br><img src="/assets/picture/realProtoTypeComponent2.png" alt></p>
+<p>很明显，我们成功的创建了 <code>prototype bean</code>!</p>
+<h5 id="继承-ApplicationContextAware-每次去获取bean"><a href="#继承-ApplicationContextAware-每次去获取bean" class="headerlink" title="继承 ApplicationContextAware 每次去获取bean"></a>继承 ApplicationContextAware 每次去获取bean</h5><p>这里不推荐使用 <code>ApplicationContextAware</code> 所以不给出方法了。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Spring/" rel="tag"># Spring</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/23/技术/maven/2017-02-23-maven常用插件/" rel="next" title="Maven 常用插件">
+                <i class="fa fa-chevron-left"></i> Maven 常用插件
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/22/技术/mysql/2017-05-22-mysql常用指令/" rel="prev" title="mysql常用指令">
+                mysql常用指令 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#如何正确的创建-prototype-类型的-Spring-bean"><span class="nav-number"></span> <span class="nav-text">如何正确的创建 prototype 类型的 Spring bean</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#依赖-prototype-bean-也必须是-prototype-bean"><span class="nav-number">0.0.0.1.</span> <span class="nav-text">依赖 prototype bean 也必须是 prototype bean</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用方法注入"><span class="nav-number">0.0.1.</span> <span class="nav-text">使用方法注入</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#继承-ApplicationContextAware-每次去获取bean"><span class="nav-number">0.0.2.</span> <span class="nav-text">继承 ApplicationContextAware 每次去获取bean</span></a></li></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

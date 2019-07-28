@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="浮点数,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="为什么浮点数会精度丢失，谁看谁知道">
+<meta name="keywords" content="浮点数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="浮点数学习笔记">
+<meta property="og:url" content="https://summerbuger.github.io/2017/12/06/技术/golang/2017-12-06-浮点数/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="为什么浮点数会精度丢失，谁看谁知道">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.453Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="浮点数学习笔记">
+<meta name="twitter:description" content="为什么浮点数会精度丢失，谁看谁知道">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2017/12/06/技术/golang/2017-12-06-浮点数/">
+
+
+
+
+
+  <title>浮点数学习笔记 | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2017/12/06/技术/golang/2017-12-06-浮点数/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">浮点数学习笔记</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-06T21:00:00+08:00">
+                2017-12-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/golang/" itemprop="url" rel="index">
+                    <span itemprop="name">golang</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  为什么浮点数会精度丢失，谁看谁知道
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="浮点数学习笔记"><a href="#浮点数学习笔记" class="headerlink" title="浮点数学习笔记"></a>浮点数学习笔记</h2><h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>最近在工作中遇到汇率换算的问题，需要将用户订单中的的本币换算成美元，用 <code>golang</code> 写了个脚本进行换算，当把汇率变量的类型定义为 <code>float32</code> 的时候，计算结果存在不能接受的误差<br>查看了一下 <code>golang</code> 的官方文档，发现 <code>golang</code> 实现的浮点型数据是基于 <code>IEEE 754标准</code>，这一标准在存储小数的时候先天就 <code>存在误差</code>，下面会一一介绍。</p>
+<h3 id="float-精度问题"><a href="#float-精度问题" class="headerlink" title="float 精度问题"></a><code>float</code> 精度问题</h3><p>先来个小例子，抛出问题</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">"fmt"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">	<span class="keyword">var</span> a <span class="keyword">float32</span> = <span class="number">64.35</span></span><br><span class="line">	<span class="keyword">var</span> b = <span class="number">64.35</span>  <span class="comment">// 默认类型是 float64</span></span><br><span class="line"></span><br><span class="line">	fmt.Printf(<span class="string">"this is a float32 %f \n"</span>, a)</span><br><span class="line">	fmt.Printf(<span class="string">"this is a float64 %f \n"</span>, b)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>程序执行结果：</p>
+<pre><code>this is a float32 64.349998
+this is a float64 64.350000</code></pre><p>可以看到, 使用 <code>float32</code> 类型的时候， 小数 <code>64.35</code> 存储的并不精准；不难想象，对 <code>float32</code> 进行逻辑计算的时候肯定会产生误差；那么使用 <code>float64</code> 类型数据的时候，计算结果就一定精准吗？答案显然是<code>否定</code>的，下面给将给出答案</p>
+<h3 id="为什么叫-浮点数"><a href="#为什么叫-浮点数" class="headerlink" title="为什么叫 浮点数"></a>为什么叫 <code>浮点数</code></h3><p>为什么叫 <code>浮点数</code>， <code>浮点数</code> 这个名词是相对 <code>定点数</code>来说的，从这两个名词中可以看出，这两个概念的差别就在于 <code>点</code>， 这里的 <code>点</code> 指的是小数中的 <code>小数点</code>；</p>
+<p>大家都知道，计算机都是使用 <code>二进制</code> 的形式来存储和计算数据的，对于小数的处理也是如此；</p>
+<p>存储小数的时候，计算机将小数分为 <code>整数</code> 和 <code>小数</code> 两个部分进行处理：</p>
+<p><code>定点数</code> 就是将小数点的位置固定，分别分配固定的位数用于存储 <code>整数</code> 和 <code>小数</code> 部分，<br>例如，我们用 32bit 存储小数，第31位存储符号，23<del>30位存储 <code>整数</code>，0</del>22 位存储小数，如下图，</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>0000 1111</th>
+<th>0100 0000 0000 0000 0000 000</th>
+<th>15.25</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31bit符号位</td>
+<td>23~30bit保存整数部分</td>
+<td>0~22bit保存小数部分</td>
+<td>十进制小数</td>
+</tr>
+</tbody></table>
+<p>上面这个例子中 <code>定点数</code> 将小数点固定在 22bit 和 23bit 之间；可以很明显的看出，这种存储方式受到位数的限制，能表示的数字范围很小，上例中小数的范围就是 -255.xxx ~ 255.xxx <br><br>(ps：寡人太懒了，不想算[1/2 + 1/4 + … + 1/2<sup>-23</sup>])<br>也正是这个原因，计算机放弃了这种方式，采用了 <code>浮点数</code> 的方式。</p>
+<p><code>浮点数</code> 从名称上来解释的就是，小数点的位置是浮动的；简单来说浮点数就是将一个数字用<code>科学计数法</code>表示，先将数字分为 <code>基数</code>、<code>指数</code>； 再将<code>基数</code>分为整数部分和小数部分，例如:<br>12345 = 1.2345 x 10<sup>4</sup>；当然这里是十进制，而计算机在存储<code>浮点数</code>的时候当然还是二进制</p>
+<p>15.25 = 1111.01 = 1.11101 x 2<sup>3</sup></p>
+<p>让我们用32bit 保存小数：</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1000 0010</th>
+<th>1110 1000 0000 0000 0000 000</th>
+<th>15.25</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31bit符号位</td>
+<td>23~30bit保存指数部分</td>
+<td>0~22bit保存小数部分</td>
+<td>十进制小数</td>
+</tr>
+</tbody></table>
+<p>你能从这个二进制中看出小数点的位置吗？<br><br>这里大家要注意： <strong>浮点数不仅仅可以保存小数！整数也是可以的</strong>，但是用浮点数表示整数这种行为不鼓励，毕竟浮点数表示数字是不精确的</p>
+<h3 id="IEEE-754-存储-浮点数"><a href="#IEEE-754-存储-浮点数" class="headerlink" title="IEEE 754 存储 浮点数"></a><code>IEEE 754</code> 存储 <code>浮点数</code></h3><p>上面讲<code>浮点数</code>的时候也基本介绍了 <code>IEEE 754</code> 标准<br><br><code>IEEE 754</code> 标准依赖于 <code>科学计数法</code>，将一个数字用二进制科学计数法表示，将一个数字分为<code>指数</code>和<code>基数</code>，用一位表示符号位，再将基数分为整数（二进制的整数部分当然是1了）和小数部分；<code>IEEE 754</code>规定了四种表示浮点数值的方式：单精确度（32位）、双精确度（64位）、延伸单精确度（43比特以上，很少使用）与延伸双精确度（79比特以上，通常以80位实现）；如下：</p>
+<table>
+<thead>
+<tr>
+<th>表示方式</th>
+<th>符号位（Sign,S）</th>
+<th>指数部分(Exponent,E)</th>
+<th>小数部分(Fraction,F)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>单精确度（32位）</td>
+<td>1bit</td>
+<td>8bit</td>
+<td>23bit</td>
+</tr>
+<tr>
+<td>双精确度（64位）</td>
+<td>1bit</td>
+<td>11bit</td>
+<td>52bit</td>
+</tr>
+</tbody></table>
+<p>一个单精确度（32位）浮点数的表达公式如下:<br><br><strong>ｘ＝(－1)<sup>S</sup>×(1.F)×2<sup>Ｅ－127</sup> 　 　e＝Ｅ－127</strong></p>
+<p><code>Sign</code>: 简写为S，符号位，很简单就是 1:负数 0:正数<br><br><code>Exponent</code>: 简写为E，指数部分，计算公式是：<code>指数+接码偏移量(127)</code><br><br><code>Fraction</code>: 简写为F，小数部分</p>
+<p>到这里大家就很自然的会想到一个问题 <strong>阶码偏移量为何用127?</strong></p>
+<p>这个问题也困扰我很久，看了<code>维基百科</code>等资料，最后在<code>知乎</code>上找到了一个比较靠谱的答案，引用如下：</p>
+<p>主要是为了让表示的范围能够对称起来<br>这个算一算就清楚了。当阶码E 为全0且尾数M 也为全0时，表示的真值x 为零，结合符号位S 为0或1，有正零和负零之分。当阶码E 为全1且尾数M为全0时，表示的真值x 为无穷大，结合符号位S 为0或1，也有+∞和-∞之分。这样在32位浮点数表示中，要除去E，用全0和全1(255)10表示零和无穷大的特殊情况，指数的偏移值不选128(10000000)，而127(01111111)。对于规格化浮点数，阶码E范围是1<del>254。 分两种情况计算如下： 1）偏移值为127时，绝对值范围大致是：1.2*10^(-38)</del>3.4<em>10^(+38)； 2）如果偏移值取为128时， 绝对值范围大致是：5.9</em>10^(-39)~1.7*10^(+38)； 可见偏移值取127时，上下范围基本对称，相对合理点。</p>
+<p>作者：yuanyuany<br>链接：<a href="https://www.zhihu.com/question/24784136/answer/144601879" target="_blank" rel="noopener">https://www.zhihu.com/question/24784136/answer/144601879</a><br><br>来源：知乎</p>
+<p>如果是双精确度（64位）</p>
+<h3 id="十进制-和-IEEE-754浮点数-相互转化"><a href="#十进制-和-IEEE-754浮点数-相互转化" class="headerlink" title="十进制 和 IEEE 754浮点数 相互转化"></a><code>十进制</code> 和 <code>IEEE 754浮点数</code> 相互转化</h3><p>下面来个小例子， 我们将 <code>64.35</code> 转化成<code>IEEE 754浮点数</code></p>
+<ol>
+<li>现将 <code>64.35</code> 用转化成 <code>二进制</code></li>
+</ol>
+<p>先看整数部分 <code>64</code> = <code>0100 0000</code></p>
+<p>再来转化小数部分转二进制</p>
+<p>0.35x2 = 0.7  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   0 // 取计算结果整数部分<br><br>0.70x2 = 1.4  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   1 // 取上一计算结果的小数部分乘以2 <br><br>0.40x2 = 0.8  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   0 <br><br>0.80x2 = 1.6  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   1 <br><br>0.60x2 = 1.2  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   1 <br><br>0.20x2 = 0.4  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   0 <br><br>0.40x2 = 0.8  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   0 <br><br>0.80x2 = 1.6  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   1 <br><br>0.60x2 = 1.2  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   1 <br><br>0.40x2 = 0.8  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   0 // 到这里已经是循环重复了，这里永远不会算出1.0，所以用 <code>IEEE 754</code> 表示的时候是无限循环 <br></p>
+<p>小数部分： <code>0.35</code> = <code>01 0110 0110 ...</code></p>
+<p>二进制结果  <code>64.35</code> = <code>1000000.0101100110...</code> = <em><em>1.0000 0001 0110 0110 0110… x 2<sup>6</sup></em></em></p>
+<p>用 32bit <code>IEEE 754</code> 存储 <code>64.35</code><br><br>s = 0<br><br>expr = 127 + 6 = 133 = <code>1000 0101</code> <br><br>frag = <code>0000 0001 0110 0110 0110 011</code><br></p>
+<p><code>IEEE 754</code> 32位存储 <code>64.35</code> 的情况如下<br><br><code>64.35</code> = <code>0 | 1000 0101 | 0000 0001 0110 0110 0110 011</code></p>
+<p>用 64bit <code>IEEE 754</code> 存储 <code>64.35</code><br><br>s = 0<br><br>expr = 1023 + 6 = 1029 = <code>1000 0000 0101</code> <br><br>frag = <code>0000 0001 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110</code><br></p>
+<p><code>IEEE 754</code> 64位存储 <code>64.35</code> 的情况如下<br><br><code>64.35</code> = <code>0 | 1000 0000 0101 | 0000 0001 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110</code></p>
+<p>我们再将<code>IEEE 754浮点数</code> 还原成小数,</p>
+<p>先看看32bit 的情况<br>看看，算出指数  1000 0101 - 1111111 = 133 - 127 = 6<br><br>然后这个浮点数的二进制表示就是 <code>1.0000 0001 0110 0110 0110 011 x 2&lt;sup&gt;6&lt;/sup&gt;</code><br><br>下面就是换算成<code>十进制</code><br>1.0000 0001 0110 0110 0110 011 x 2<sup>6</sup> = 100 0000.0101 1001 1001 1001 1</p>
+<p>先看整数部分  0100 0000 = 64<br>在看小数部分 0.0101 1001 1001 1001 1 转十进制</p>
+<p>1/2<sup>2</sup> + 1/2<sup>4</sup> + 1/2<sup>5</sup> + 1/2<sup>8</sup> + 1/2<sup>9</sup> + 1/2<sup>12</sup> + 1/2<sup>13</sup> + 1/2<sup>16</sup> + 1/2<sup>17</sup> = 0.349052429199219</p>
+<p>结论: <code>0 | 1000 0101 | 0000 0001 0110 0110 0110 011</code> = <code>64.349052429199219</code></p>
+<p>再看 64bit 的情况：<br><br>1.0000 0001 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110 x 2<sup>6</sup> = 100 0000.0101 1001 1001 1001 1001 1001 1001 1001 1001 1001 1001 10</p>
+<p>0.0101 1001 1001 1001 1001 1001 1001 1001 1001 1001 1001 10 =<br>1/2<sup>2</sup> + 1/2<sup>4</sup> + 1/2<sup>5</sup> + 1/2<sup>8</sup> + 1/2<sup>9</sup> + 1/2<sup>12</sup> + 1/2<sup>13</sup> + 1/2<sup>16</sup> + 1/2<sup>17</sup> + 1/2<sup>20</sup> + 1/2<sup>21</sup> + 1/2<sup>24</sup> + 1/2<sup>25</sup> + 1/2<sup>28</sup> + 1/2<sup>29</sup> + 1/2<sup>32</sup> + 1/2<sup>33</sup> + 1/2<sup>36</sup> + 1/2<sup>37</sup> + 1/2<sup>40</sup> + 1/2<sup>41</sup> + 1/2<sup>44</sup> + 1/2<sup>45</sup> = 0.349999999999994</p>
+<p>结论: <code>0 | 1000 0000 0101 | 0000 0001 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110 0110</code> = <code>64.349999999999994</code></p>
+<p>从这里也可以看出浮点数都不精确！当对精确有要求的时候尽量避免使用浮点数。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/浮点数/" rel="tag"># 浮点数</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/11/23/技术/docker/2017-11-23-Docker常用指令/" rel="next" title="Docker常用指令">
+                <i class="fa fa-chevron-left"></i> Docker常用指令
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/12/10/技术/kafka/2017-12-10-kafka如何把实现consumer控制offset/" rel="prev" title="kafka 中的偏移量">
+                kafka 中的偏移量 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#浮点数学习笔记"><span class="nav-number">1.</span> <span class="nav-text">浮点数学习笔记</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#前言"><span class="nav-number">1.0.1.</span> <span class="nav-text">前言</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#float-精度问题"><span class="nav-number">1.1.</span> <span class="nav-text">float 精度问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#为什么叫-浮点数"><span class="nav-number">1.2.</span> <span class="nav-text">为什么叫 浮点数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IEEE-754-存储-浮点数"><span class="nav-number">1.3.</span> <span class="nav-text">IEEE 754 存储 浮点数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#十进制-和-IEEE-754浮点数-相互转化"><span class="nav-number">1.4.</span> <span class="nav-text">十进制 和 IEEE 754浮点数 相互转化</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

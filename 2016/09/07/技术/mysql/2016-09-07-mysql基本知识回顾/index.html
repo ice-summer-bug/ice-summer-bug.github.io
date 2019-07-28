@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="mysql,">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="mysql 索引浅探">
+<meta name="keywords" content="mysql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mysql 索引">
+<meta property="og:url" content="https://summerbuger.github.io/2016/09/07/技术/mysql/2016-09-07-mysql基本知识回顾/index.html">
+<meta property="og:site_name" content="Ice summer bug&#39;s notes">
+<meta property="og:description" content="mysql 索引浅探">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/multiindex.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/mysql_index_a.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/mysql_index_a_c.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/mysql_index_b_c.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/mysql_index_a_c.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/mysql_index_a_b_c_range.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/school_long_idx.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/school_long_idx2.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/school_short_idx.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/school_short_idx.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/school_use_idx.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/school_force_idx_range_query.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/school_ignore_idx.png">
+<meta property="og:updated_time" content="2019-07-07T08:57:26.460Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mysql 索引">
+<meta name="twitter:description" content="mysql 索引浅探">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/multiindex.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://summerbuger.github.io/2016/09/07/技术/mysql/2016-09-07-mysql基本知识回顾/">
+
+
+
+
+
+  <title>Mysql 索引 | Ice summer bug's notes</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Ice summer bug's notes</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2016/09/07/技术/mysql/2016-09-07-mysql基本知识回顾/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Ice summer bug's notes">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Mysql 索引</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-09-07T21:00:00+08:00">
+                2016-09-07
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/mysql/" itemprop="url" rel="index">
+                    <span itemprop="name">mysql</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+              <div class="post-description">
+                  mysql 索引浅探
+              </div>
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Mysql-索引"><a href="#Mysql-索引" class="headerlink" title="Mysql 索引"></a>Mysql 索引</h2><h3 id="索引的分类"><a href="#索引的分类" class="headerlink" title="索引的分类"></a>索引的分类</h3><p>mysql 索引分为 <code>聚簇索引</code> 和 <code>非聚簇索引</code><br><br><code>聚簇索引</code>：数据的物理存储顺序和索引的顺序是一致的<br><br><code>非聚簇索引</code>：数据的物理存储顺序和索引的顺序不一致<br><br>很明显数据的物理存储顺序只有一种，所以 <code>聚簇索引</code> 只能有一个</p>
+<h3 id="关于联合索引"><a href="#关于联合索引" class="headerlink" title="关于联合索引"></a>关于联合索引</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`grade_info`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">'自增主键'</span>,</span><br><span class="line">  <span class="string">`grade`</span> <span class="keyword">double</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">'0'</span> <span class="keyword">COMMENT</span> <span class="string">'成绩'</span>,</span><br><span class="line">  <span class="string">`teacher_id`</span> <span class="built_in">varchar</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span> <span class="keyword">COMMENT</span> <span class="string">'教师id'</span>,</span><br><span class="line">  <span class="string">`class_id`</span> <span class="built_in">varchar</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span> <span class="keyword">COMMENT</span> <span class="string">'课程id'</span>,</span><br><span class="line">  <span class="string">`student_id`</span> <span class="built_in">varchar</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span> <span class="keyword">COMMENT</span> <span class="string">'学生id'</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`grade_info_teacher_id_IDX`</span> (<span class="string">`teacher_id`</span>,<span class="string">`class_id`</span>,<span class="string">`student_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> AUTO_INCREMENT=<span class="number">30</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8mb4</span><br></pre></td></tr></table></figure>
+
+<p>先创建一个表，这个表中有个联合索引 <code>grade_info_teacher_id_IDX</code></p>
+<p>下面插入几条数据：</p>
+<p><img src="/assets/picture/multiindex.png" alt="图片" title="grade_info 中的数据"></p>
+<p>下面开始讨论下面几个问题:</p>
+<pre><code>`grade_info_teacher_id_IDX` (teacher_id, class_id, student_id) 这个索引如果查询条件只有teacher_id，会用上索引么？&lt;br /&gt;
+如果查询条件中有teacher_id, student_id会用上索引么？&lt;br /&gt;
+如果查询条件中有class_id, student_id会用上索引么？&lt;br /&gt;
+如果查询条件中有teacher_id, class_id会用上索引么？&lt;br /&gt;</code></pre><p><img src="/assets/picture/mysql_index_a.png" alt="图片" title="使用索引第一列的情况"></p>
+<p>很明显当查询条件中使用了联合索引的第一列的时候会用上索引</p>
+<p><img src="/assets/picture/mysql_index_a_c.png" alt="图片" title="使用索引第一列和第三列的情况"></p>
+<p>这里当查询条件使用联合索引的第一列和第三列的时候也会用上索引，<br>但是这里有个问题， 图中的查询条件只会查询出一条，但是现在问题出现了， 但<code>explain</code> 结果中的row 是 2， 这里得知 索引只用到了第一列</p>
+<p><img src="/assets/picture/mysql_index_b_c.png" alt="图片" title="使用索引第二列、第三列的情况"><br>很明显，这种查询条件没用上索引</p>
+<p><img src="/assets/picture/mysql_index_a_c.png" alt="图片" title="使用索引第一列、第二列的情况"><br>这里使用到了索引，而且索引的长度和 只使用第一列的时候相比更长； 可以确定这里使用了索引的前两列</p>
+<h3 id="索引的限制"><a href="#索引的限制" class="headerlink" title="索引的限制"></a>索引的限制</h3><p>这里说的索引的限制将能解释上面联合索引的问题</p>
+<h4 id="1-如果不是按照索引的最左列开始查询，则无法使用索引"><a href="#1-如果不是按照索引的最左列开始查询，则无法使用索引" class="headerlink" title="1. 如果不是按照索引的最左列开始查询，则无法使用索引"></a>1. 如果不是按照索引的最左列开始查询，则无法使用索引</h4><p>如果查询条件中有class_id, student_id会用上索引么？<br>这里就能回答这个问题，不会；</p>
+<h4 id="2-不能跳过索引中的列"><a href="#2-不能跳过索引中的列" class="headerlink" title="2. 不能跳过索引中的列"></a>2. 不能跳过索引中的列</h4><p>如果查询条件中有teacher_id, student_id会用上索引么？<br>这里跳过了第二列，这个时候只使用索引的第一列</p>
+<h4 id="3-如果查询中有某列的范围查询，则其右边的所有列的查询都不能使用索引优化查找"><a href="#3-如果查询中有某列的范围查询，则其右边的所有列的查询都不能使用索引优化查找" class="headerlink" title="3. 如果查询中有某列的范围查询，则其右边的所有列的查询都不能使用索引优化查找"></a>3. 如果查询中有某列的范围查询，则其右边的所有列的查询都不能使用索引优化查找</h4><p><img src="/assets/picture/mysql_index_a_b_c_range.png" alt="图片" title="索引全覆盖，但最左列是范围查询"><br>从 <code>explain</code> 中 row 是 3， 但是查询到结果只有一个，而只按照第一列范围查询结果是3，这个例子可以印证上述限制</p>
+<h3 id="索引的选择"><a href="#索引的选择" class="headerlink" title="索引的选择"></a>索引的选择</h3><p>突然发现一个问题，mysql 是如何选择索引的？</p>
+<p>下面看看这个表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">DROP TABLE IF EXISTS `school`;</span><br><span class="line">CREATE TABLE `school` (</span><br><span class="line">  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT &apos;主键&apos;,</span><br><span class="line">  `name` varchar(20) NOT NULL DEFAULT &apos;&apos; COMMENT &apos;学校名称&apos;,</span><br><span class="line">  `phone` varchar(20) NOT NULL DEFAULT &apos;&apos; COMMENT &apos;学校电话&apos;,</span><br><span class="line">  `addr` varchar(255) NOT NULL DEFAULT &apos;&apos; COMMENT &apos;学校地址&apos;,</span><br><span class="line">  `email` varchar(30) NOT NULL DEFAULT &apos;&apos;,</span><br><span class="line">  PRIMARY KEY (`id`),</span><br><span class="line">  KEY `idx_name_phone_email` (`name`,`phone`,`email`),</span><br><span class="line">  KEY `idx_name_phone` (`name`,`phone`)</span><br><span class="line">) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT=&apos;学校&apos;</span><br></pre></td></tr></table></figure>
+
+<p><code>idx_name_phone_email</code> 和 <code>idx_name_phone</code> 这两个索引，设置的 <em>极不合理</em> ，这里 <em>不推荐使用</em> ， 但是这种情况下，mysql 会选择哪个索引呢？</p>
+<p>插入一条测试数据<br><img src="/assets/picture/school_long_idx.png" alt="图片"></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">desc <span class="keyword">select</span> * <span class="keyword">from</span> school <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">'重庆邮电大学'</span> <span class="keyword">and</span> phone = <span class="string">'76822313'</span>\G</span><br></pre></td></tr></table></figure>
+
+<p>执行一下上面这个 sql 语句，两个索引都可能被用到，会是哪一个呢？</p>
+<p>这里我们能看到，使用的是 <code>idx_name_phone_email</code><br><img src="/assets/picture/school_long_idx2.png" alt="图片" title="使用索引 `idx_name_phone_email`"></p>
+<p>这里做一个简单的猜想，为什么使用的是 <code>idx_name_phone_email</code>, 这和索引的声明顺序有关吗？</p>
+<p>重新建表看看：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> <span class="string">`school`</span>;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`school`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">'主键'</span>,</span><br><span class="line">  <span class="string">`name`</span> <span class="built_in">varchar</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span> <span class="keyword">COMMENT</span> <span class="string">'学校名称'</span>,</span><br><span class="line">  <span class="string">`phone`</span> <span class="built_in">varchar</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span> <span class="keyword">COMMENT</span> <span class="string">'学校电话'</span>,</span><br><span class="line">  <span class="string">`addr`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span> <span class="keyword">COMMENT</span> <span class="string">'学校地址'</span>,</span><br><span class="line">  <span class="string">`email`</span> <span class="built_in">varchar</span>(<span class="number">30</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">''</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`idx_name_phone`</span> (<span class="string">`name`</span>,<span class="string">`phone`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`idx_name_phone_email`</span> (<span class="string">`name`</span>,<span class="string">`phone`</span>,<span class="string">`email`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> AUTO_INCREMENT=<span class="number">2</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COMMENT</span>=<span class="string">'学校'</span></span><br></pre></td></tr></table></figure>
+
+<p>修改了索引定义顺序之后， 使用的索引也随之改变了</p>
+<p><img src="/assets/picture/school_short_idx.png" alt="图片" title="使用索引 `idx_name_phone`"></p>
+<p>好像，我们的猜想被证实了</p>
+<h6 id="如果我们需要制定使用哪个索引呢？"><a href="#如果我们需要制定使用哪个索引呢？" class="headerlink" title="如果我们需要制定使用哪个索引呢？"></a>如果我们需要制定使用哪个索引呢？</h6><p><img src="/assets/picture/school_short_idx.png" alt="图片" title="使用 force index"></p>
+<p><code>force index(idx_name)</code>: 使用这个关键字强制指定要用的索引即可</p>
+<p>还有其他方式吗？</p>
+<p>可以 <code>use index(idx_name)</code> 推荐使用的索引</p>
+<p><img src="/assets/picture/school_use_idx.png" alt="图片" title="使用 use index"></p>
+<h6 id="use-index-和-force-index-的区别"><a href="#use-index-和-force-index-的区别" class="headerlink" title="use index 和 force index 的区别"></a><code>use index</code> 和 <code>force index</code> 的区别</h6><pre><code>If you use USE INDEX then you RECOMMEND optimizer to use this index, but it can use a table scan if optimizer thinks it will be faster. If you use FORCE INDEX then you MAKE optimizer to use this index even if it thinks a table scan is more efficient. Optimizer will use a table scan only if there is no way to use index to find rows.</code></pre><p>也就是说， 使用 <code>USE INDEX</code> 时 sql 优化可能会进行全表扫描，如果全表扫描更快的话； 而使用 <code>FORCE INDEX</code> 时，只能是使用索引，除非查询条件没有命中索引</p>
+<p>指定使用索引还有一个使用场景，就是解决之前说到的 <em>范围查询时，索引无效</em></p>
+<p><img src="/assets/picture/school_force_idx_range_query.png" alt="图片" title="范围查询时强制使用索引"></p>
+<p>除了指定要使用的索引，还能指定不使用哪些索引</p>
+<p><img src="/assets/picture/school_ignore_idx.png" alt="图片" title="使用 ignore index"></p>
+<p>排除掉不使用的索引，就能使用想要使用的索引</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mysql/" rel="tag"># mysql</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/07/27/技术/java/2016-07-27-synchronized 几种使用方法比较/" rel="next" title="synchronized 几种使用方法比较">
+                <i class="fa fa-chevron-left"></i> synchronized 几种使用方法比较
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/09/08/技术/mysql/2016-09-08-mysql explain 详解/" rel="prev" title="mysql explain 介绍">
+                mysql explain 介绍 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Liam Chen</p>
+              <p class="site-description motion-element" itemprop="description">About technology and about life.</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">56</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">41</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mysql-索引"><span class="nav-number">1.</span> <span class="nav-text">Mysql 索引</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#索引的分类"><span class="nav-number">1.1.</span> <span class="nav-text">索引的分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#关于联合索引"><span class="nav-number">1.2.</span> <span class="nav-text">关于联合索引</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引的限制"><span class="nav-number">1.3.</span> <span class="nav-text">索引的限制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-如果不是按照索引的最左列开始查询，则无法使用索引"><span class="nav-number">1.3.1.</span> <span class="nav-text">1. 如果不是按照索引的最左列开始查询，则无法使用索引</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-不能跳过索引中的列"><span class="nav-number">1.3.2.</span> <span class="nav-text">2. 不能跳过索引中的列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-如果查询中有某列的范围查询，则其右边的所有列的查询都不能使用索引优化查找"><span class="nav-number">1.3.3.</span> <span class="nav-text">3. 如果查询中有某列的范围查询，则其右边的所有列的查询都不能使用索引优化查找</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引的选择"><span class="nav-number">1.4.</span> <span class="nav-text">索引的选择</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#如果我们需要制定使用哪个索引呢？"><span class="nav-number">1.4.0.0.1.</span> <span class="nav-text">如果我们需要制定使用哪个索引呢？</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#use-index-和-force-index-的区别"><span class="nav-number">1.4.0.0.2.</span> <span class="nav-text">use index 和 force index 的区别</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Mist</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
