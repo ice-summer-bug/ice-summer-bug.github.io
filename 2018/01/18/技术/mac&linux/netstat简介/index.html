@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="端口,linux,">
+  <meta name="keywords" content="linux指令,">
 
 
 
@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="系统常用通信端口汇总">
-<meta name="keywords" content="端口,linux">
+<meta name="description" content="netstat 指令排查端口占用">
+<meta name="keywords" content="linux指令">
 <meta property="og:type" content="article">
-<meta property="og:title" content="常用通信端口总结">
+<meta property="og:title" content="记一次线上端口排查过程">
 <meta property="og:url" content="https://summerbuger.github.io/2018/01/18/技术/mac&linux/netstat简介/index.html">
 <meta property="og:site_name" content="Ice summer bug&#39;s notes">
-<meta property="og:description" content="系统常用通信端口汇总">
+<meta property="og:description" content="netstat 指令排查端口占用">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2019-07-28T15:43:34.123Z">
+<meta property="og:updated_time" content="2019-10-04T13:51:43.475Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="常用通信端口总结">
-<meta name="twitter:description" content="系统常用通信端口汇总">
+<meta name="twitter:title" content="记一次线上端口排查过程">
+<meta name="twitter:description" content="netstat 指令排查端口占用">
 
 
 
@@ -126,7 +126,7 @@
 
 
 
-  <title>常用通信端口总结 | Ice summer bug's notes</title>
+  <title>记一次线上端口排查过程 | Ice summer bug's notes</title>
   
 
 
@@ -191,6 +191,36 @@
         </li>
       
         
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br>
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            分类
+          </a>
+        </li>
+      
+        
         <li class="menu-item menu-item-archives">
           <a href="/archives/" rel="section">
             
@@ -200,11 +230,53 @@
           </a>
         </li>
       
+        
+        <li class="menu-item menu-item-schedule">
+          <a href="/schedule/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br>
+            
+            日程表
+          </a>
+        </li>
+      
 
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            搜索
+          </a>
+        </li>
       
     </ul>
   
 
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
   
 </nav>
 
@@ -250,7 +322,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">常用通信端口总结</h1>
+          <h1 class="post-title" itemprop="name headline">记一次线上端口排查过程</h1>
         
 
         <div class="post-meta">
@@ -285,8 +357,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/端口/" itemprop="url" rel="index">
-                    <span itemprop="name">端口</span>
+                  <a href="/categories/linux/" itemprop="url" rel="index">
+                    <span itemprop="name">linux</span>
                   </a>
                 </span>
 
@@ -309,7 +381,7 @@
 
           
               <div class="post-description">
-                  系统常用通信端口汇总
+                  netstat 指令排查端口占用
               </div>
           
 
@@ -326,11 +398,31 @@
       
 
       
-        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>今天在查看线上应用的时候发现一个不常见的端口占用</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$netstat</span> -tlp | grep 99573</span><br><span class="line">tcp        0      0 0.0.0.0:24013           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:17134           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:sieve-filter    0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:18134           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 localhost:19134         0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:commplex-main   0.0.0.0:*               LISTEN      99573/java</span><br></pre></td></tr></table></figure>
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>今天在查看线上应用的时候发现一个服务启动之后报错断开已经被占用，但是<code>tomcat</code> 容器的日志中只说了端口已经被占用，但是没说是哪个端口被占用了，我们只能看看这个服务在其他机器上占用了什么接口，这时候我们就想到 <code>netstat</code> 指令</p>
+<h2 id="netstat-查看端口占用情况"><a href="#netstat-查看端口占用情况" class="headerlink" title="netstat 查看端口占用情况"></a><code>netstat</code> 查看端口占用情况</h2><h3 id="常用-netstat-指令"><a href="#常用-netstat-指令" class="headerlink" title="常用 netstat 指令"></a>常用 <code>netstat</code> 指令</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$netstat</span> -tlp | grep 99573</span><br><span class="line">tcp        0      0 0.0.0.0:24013           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:17134           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:sieve-filter    0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:18134           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 localhost:19134         0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:commplex-main   0.0.0.0:*               LISTEN      99573/java</span><br></pre></td></tr></table></figure>
 
-<p><code>sieve-filter</code> 这个是什么？<code>commplex-main</code> 又是什么？</p>
-<h2 id="通用常用端口列表"><a href="#通用常用端口列表" class="headerlink" title="通用常用端口列表"></a>通用常用端口列表</h2><table>
+<p><code>sieve-filter</code> 这个是什么？<code>commplex-main</code> 又是什么？我们怎么才能看到这两个端口的具体数值呢？</p>
+<h3 id="netstat-指令常用参数"><a href="#netstat-指令常用参数" class="headerlink" title="netstat 指令常用参数"></a><code>netstat</code> 指令常用参数</h3><pre><code>netstat: 查看网络端口使用情况
+    -a: 打印索引的套接字连接
+    -t: 只打印TCP 连接信息
+    -u: 只打印UDP 连接信息
+    -p: 打印进程名称及进程ID
+    -l: 打印所有在监听的服务端口
+    -n: 用数字的形式打印端口信息，不对端口进行解析</code></pre><p>到这里我们就知道如何去打印具体的端口信息，去解决上面遇到的问题了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$netstat -tnlp | grep 99573</span><br><span class="line">tcp        0      0 0.0.0.0:24013           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:17134           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:2000    0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:18134           0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 localhost:19134         0.0.0.0:*               LISTEN      99573/java          </span><br><span class="line">tcp        0      0 0.0.0.0:5000   0.0.0.0:*               LISTEN      99573/java</span><br></pre></td></tr></table></figure>
+
+<h3 id="数据列说明"><a href="#数据列说明" class="headerlink" title="数据列说明"></a>数据列说明</h3><ol>
+<li>Proto: 通信协议，tcp, udp, raw 等</li>
+<li>Rece-Q: 接收队列中上午读取的数据，单位字节，一般是 0</li>
+<li>Send-Q: 发送到远端尚未收到 ACK 的数据，单位字节，一般是0</li>
+<li>Local Address: 通信连接中的本机地址及端口，一般情况下是 FQDN（全限定域名） 格式显示的地址，端口的显示格式默认是端口对应的服务名称，只有指定 <code>--numersic</code> 的时候才会按照数字形式打印</li>
+<li>Foreign Address: 套接字的远端信息，地址加端口</li>
+<li>State: 套接字连接状态<br>这里我们可以穿插讲解一下套接字连接状态</li>
+</ol>
+<p>6.1 ESTABLISHED 传输中断状态<br>6.2 SYN_SENT 客户端发起连接发送连接请求后的状态<br>6.3 SYN_RECV 套接字服务端接收到连接请求后的状态<br>6.4 FIN_WAIT1 客户端发起断开连接请求后的状态<br>6.5 FIN_WAIT2 断开连接请求方接收到对方回复之后，等待对方发起断开连接之后的状态<br>6.6 TIME_WAIT 客户端接收到服务端的断开连接的请求之后，向服务端发送ACK 信息后，进入此状态，是为了防止网络故障，进入 <code>TIME_WAIT</code> 后，如果服务端一直没有收到 ACK，会重新发送断开连接的请求<br>6.7 CLOSED 连接关闭的状态<br>6.8 CLOSED_WAIT 服务端接收到断开连接请求之后，发送ACK 之后<br>6.9 LAST_ACK 服务端确认数据发送完毕后，发送断开连接请求之后，进入此状态<br>6.10 LISTEN 暴露接口等待连接<br>6.11 CLOSING 连接双方同时发起断开连接的时候，出现的一个短暂的状态<br>6.12 UNKNOWN 未知的状态</p>
+<h3 id="netstat-指令参数说明"><a href="#netstat-指令参数说明" class="headerlink" title="netstat 指令参数说明"></a><code>netstat</code> 指令参数说明</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$netstat</span> -h</span><br><span class="line">usage: netstat [-vWeenNcCF] [&lt;Af&gt;] -r         netstat &#123;-V|--version|-h|--<span class="built_in">help</span>&#125;</span><br><span class="line">       netstat [-vWnNcaeol] [&lt;Socket&gt; ...]</span><br><span class="line">       netstat &#123; [-vWeenNac] -I[&lt;Iface&gt;] | [-veenNac] -i | [-cnNe] -M | -s [-6tuw] &#125; [delay]</span><br><span class="line"></span><br><span class="line">        -r, --route              display routing table</span><br><span class="line">        -I, --interfaces=&lt;Iface&gt; display interface table <span class="keyword">for</span> &lt;Iface&gt;</span><br><span class="line">        -i, --interfaces         display interface table</span><br><span class="line">        -g, --groups             display multicast group memberships</span><br><span class="line">        -s, --statistics         display networking statistics (like SNMP)</span><br><span class="line">        -M, --masquerade         display masqueraded connections</span><br><span class="line"></span><br><span class="line">        -v, --verbose            be verbose</span><br><span class="line">        -W, --wide               don<span class="string">'t truncate IP addresses</span></span><br><span class="line"><span class="string">        -n, --numeric            don'</span>t resolve names</span><br><span class="line">        --numeric-hosts          don<span class="string">'t resolve host names</span></span><br><span class="line"><span class="string">        --numeric-ports          don'</span>t resolve port names</span><br><span class="line">        --numeric-users          don<span class="string">'t resolve user names</span></span><br><span class="line"><span class="string">        -N, --symbolic           resolve hardware names</span></span><br><span class="line"><span class="string">        -e, --extend             display other/more information</span></span><br><span class="line"><span class="string">        -p, --programs           display PID/Program name for sockets</span></span><br><span class="line"><span class="string">        -o, --timers             display timers</span></span><br><span class="line"><span class="string">        -c, --continuous         continuous listing</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        -l, --listening          display listening server sockets</span></span><br><span class="line"><span class="string">        -a, --all                display all sockets (default: connected)</span></span><br><span class="line"><span class="string">        -F, --fib                display Forwarding Information Base (default)</span></span><br><span class="line"><span class="string">        -C, --cache              display routing cache instead of FIB</span></span><br><span class="line"><span class="string">        -Z, --context            display SELinux security context for sockets</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">  &lt;Socket&gt;=&#123;-t|--tcp&#125; &#123;-u|--udp&#125; &#123;-U|--udplite&#125; &#123;-w|--raw&#125; &#123;-x|--unix&#125;</span></span><br><span class="line"><span class="string">           --ax25 --ipx --netrom</span></span><br><span class="line"><span class="string">  &lt;AF&gt;=Use '</span>-6|-4<span class="string">' or '</span>-A &lt;af&gt;<span class="string">' or '</span>--&lt;af&gt;<span class="string">'; default: inet</span></span><br><span class="line"><span class="string">  List of possible address families (which support routing):</span></span><br><span class="line"><span class="string">    inet (DARPA Internet) inet6 (IPv6) ax25 (AMPR AX.25)</span></span><br><span class="line"><span class="string">    netrom (AMPR NET/ROM) ipx (Novell IPX) ddp (Appletalk DDP)</span></span><br><span class="line"><span class="string">    x25 (CCITT X.25)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="端口占用具体结论"><a href="#端口占用具体结论" class="headerlink" title="端口占用具体结论"></a>端口占用具体结论</h3><table>
 <thead>
 <tr>
 <th>端口</th>
@@ -370,9 +462,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/端口/" rel="tag"># 端口</a>
-          
-            <a href="/tags/linux/" rel="tag"># linux</a>
+            <a href="/tags/linux指令/" rel="tag"># linux指令</a>
           
         </div>
       
@@ -496,7 +586,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">39</span>
+                  <span class="site-state-item-count">38</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
@@ -529,7 +619,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#通用常用端口列表"><span class="nav-number"></span> <span class="nav-text">通用常用端口列表</span></a></li></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol><li class="nav-item nav-level-2"><a class="nav-link" href="#netstat-查看端口占用情况"><span class="nav-number"></span> <span class="nav-text">netstat 查看端口占用情况</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#常用-netstat-指令"><span class="nav-number">1.</span> <span class="nav-text">常用 netstat 指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#netstat-指令常用参数"><span class="nav-number">2.</span> <span class="nav-text">netstat 指令常用参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据列说明"><span class="nav-number">3.</span> <span class="nav-text">数据列说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#netstat-指令参数说明"><span class="nav-number">4.</span> <span class="nav-text">netstat 指令参数说明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#端口占用具体结论"><span class="nav-number">5.</span> <span class="nav-text">端口占用具体结论</span></a></li></ol></li></div>
             
 
           </div>
@@ -714,6 +804,323 @@
 
 
   
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
 
 
 
