@@ -79,21 +79,21 @@
 
 
 
-<meta name="description" content="apache flink 容错机制的简单介绍">
+<meta name="description" content="apache flink 数据流容错机制介绍文档译文">
 <meta name="keywords" content="flink">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Flink 探究之路 ———— 容错机制，Checkpoint 和 Savepoint">
 <meta property="og:url" content="https://summerbuger.github.io/2019/01/26/技术/flink/flink之savepoints和checkpoints/index.html">
 <meta property="og:site_name" content="Ice summer bug&#39;s notes">
-<meta property="og:description" content="apache flink 容错机制的简单介绍">
+<meta property="og:description" content="apache flink 数据流容错机制介绍文档译文">
 <meta property="og:locale" content="zh-Hans">
 <meta property="og:image" content="https://segmentfault.com/img/remote/1460000008129555">
 <meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.7/fig/stream_aligning.svg">
 <meta property="og:image" content="https://ci.apache.org/projects/flink/flink-docs-release-1.7/fig/checkpointing.svg">
-<meta property="og:updated_time" content="2019-10-04T15:31:39.677Z">
+<meta property="og:updated_time" content="2019-12-08T07:15:52.094Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Flink 探究之路 ———— 容错机制，Checkpoint 和 Savepoint">
-<meta name="twitter:description" content="apache flink 容错机制的简单介绍">
+<meta name="twitter:description" content="apache flink 数据流容错机制介绍文档译文">
 <meta name="twitter:image" content="https://segmentfault.com/img/remote/1460000008129555">
 
 
@@ -385,7 +385,7 @@
 
           
               <div class="post-description">
-                  apache flink 容错机制的简单介绍
+                  apache flink 数据流容错机制介绍文档译文
               </div>
           
 
@@ -402,7 +402,7 @@
       
 
       
-        <h1 id="Flink-的容错机制"><a href="#Flink-的容错机制" class="headerlink" title="Flink 的容错机制"></a>Flink 的容错机制</h1><p><code>Flink</code> 最吸引使用者的地方就是它提供的容错机制保证数据流应用程序的<code>状态</code>的持续性恢复。<code>Flink</code> 保证即使在失败的情况下，数据流中的每一条数据最终也能确保只会对状态数据响应一次（<code>exactly once</code>）。<code>响应一次</code> 的机制可以手动降级到 <code>至少响应一次</code>(<code>at least once</code>)。</p>
+        <h1 id="Flink-数据流容错机制译文"><a href="#Flink-数据流容错机制译文" class="headerlink" title="Flink 数据流容错机制译文"></a>Flink 数据流容错机制译文</h1><p><code>Flink</code> 最吸引使用者的地方就是它提供的容错机制保证可以持续性的恢复数据流应用程序的<code>状态</code>。<code>Flink</code> 保证即使在失败的情况下，数据流中的每一条数据最终也能确保只会对状态数据响应一次（<code>exactly once</code>）。<code>响应一次</code> 的机制可以手动降级到 <code>至少响应一次</code>(<code>at least once</code>)。</p>
 <p><code>容错机制</code> 对分布式流式数据持续性的产生<code>快照</code>(<code>snapshot</code>)并存储。对于持有小型数据状态的数据流应用来说，产生 <code>快照</code> 的过程是很轻量级的，对于数据流的正常处理过程的影响微乎其微。数据流应用的 <code>状态</code> 数据可以存储到一个可配置的环境(<code>Master</code>节点中，或者 <code>HDFS</code> 中）。</p>
 <p>当程序失败（机器、网络或者软件故障）的时候，<code>Flink</code> 将停止分布式数据流应用。然后再从最后一次成功的 <code>checkpoint</code> 中保存的 <code>状态</code>(<code>state</code>) 数据中恢复应用的所有 <code>算子</code>（<code>Operator</code>）。输入数据也被重置到最后一次成功的<code>快照</code>数据中保存的位置 。 <code>Flink</code> 保证并行数据流在重启之后处理的所有数据都不会是最近一次成功的 <code>checkpoint</code> 之前的数据。</p>
 <pre><code>注意：
@@ -712,7 +712,7 @@ mapper-id   | State of StatefulMapper</code></pre><p>通过算子的ID 能够获
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink-的容错机制"><span class="nav-number">1.</span> <span class="nav-text">Flink 的容错机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Checkpointing"><span class="nav-number">2.</span> <span class="nav-text">Checkpointing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Barriers-栅栏"><span class="nav-number">2.1.</span> <span class="nav-text">Barriers (栅栏)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态-State"><span class="nav-number">2.2.</span> <span class="nav-text">状态 State</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exactly-Once-vs-At-Least-Once-只响应一次还是还是至少响应一次"><span class="nav-number">2.3.</span> <span class="nav-text">Exactly Once vs. At Least Once 只响应一次还是还是至少响应一次</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Asynchronous-State-Snapshots-异步状态快照"><span class="nav-number">2.4.</span> <span class="nav-text">Asynchronous State Snapshots 异步状态快照</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#故障恢复-Recovery"><span class="nav-number">2.5.</span> <span class="nav-text">故障恢复(Recovery)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算子快照的实现"><span class="nav-number">2.6.</span> <span class="nav-text">算子快照的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#比较一下-Checkpoint-和-Savepoint"><span class="nav-number">3.</span> <span class="nav-text">比较一下 Checkpoint 和 Savepoint</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#保存点-Savepoint"><span class="nav-number">3.1.</span> <span class="nav-text">保存点(Savepoint)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算子命名的重要性"><span class="nav-number">3.2.</span> <span class="nav-text">算子命名的重要性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#从保存点重启任务的时候算子修改会有什么结果"><span class="nav-number">3.3.</span> <span class="nav-text">从保存点重启任务的时候算子修改会有什么结果?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新增一个有状态的节点"><span class="nav-number">3.3.1.</span> <span class="nav-text">新增一个有状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除一个有状态的节点"><span class="nav-number">3.3.2.</span> <span class="nav-text">删除一个有状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重新排序有状态的节点-amp-amp-删除或者重新排序无状态的节点"><span class="nav-number">3.3.3.</span> <span class="nav-text">重新排序有状态的节点 &amp;&amp; 删除或者重新排序无状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改算子的并行度"><span class="nav-number">3.3.4.</span> <span class="nav-text">修改算子的并行度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保存点-Savepoint-和-检查点-Checkpoint-的区别"><span class="nav-number">3.4.</span> <span class="nav-text">保存点(Savepoint) 和 检查点(Checkpoint) 的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#译者注"><span class="nav-number">3.4.0.0.0.1.</span> <span class="nav-text">译者注</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#参考文档"><span class="nav-number">3.4.0.0.0.2.</span> <span class="nav-text">参考文档</span></a></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Flink-数据流容错机制译文"><span class="nav-number">1.</span> <span class="nav-text">Flink 数据流容错机制译文</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Checkpointing"><span class="nav-number">2.</span> <span class="nav-text">Checkpointing</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Barriers-栅栏"><span class="nav-number">2.1.</span> <span class="nav-text">Barriers (栅栏)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态-State"><span class="nav-number">2.2.</span> <span class="nav-text">状态 State</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exactly-Once-vs-At-Least-Once-只响应一次还是还是至少响应一次"><span class="nav-number">2.3.</span> <span class="nav-text">Exactly Once vs. At Least Once 只响应一次还是还是至少响应一次</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Asynchronous-State-Snapshots-异步状态快照"><span class="nav-number">2.4.</span> <span class="nav-text">Asynchronous State Snapshots 异步状态快照</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#故障恢复-Recovery"><span class="nav-number">2.5.</span> <span class="nav-text">故障恢复(Recovery)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算子快照的实现"><span class="nav-number">2.6.</span> <span class="nav-text">算子快照的实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#比较一下-Checkpoint-和-Savepoint"><span class="nav-number">3.</span> <span class="nav-text">比较一下 Checkpoint 和 Savepoint</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#保存点-Savepoint"><span class="nav-number">3.1.</span> <span class="nav-text">保存点(Savepoint)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#算子命名的重要性"><span class="nav-number">3.2.</span> <span class="nav-text">算子命名的重要性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#从保存点重启任务的时候算子修改会有什么结果"><span class="nav-number">3.3.</span> <span class="nav-text">从保存点重启任务的时候算子修改会有什么结果?</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#新增一个有状态的节点"><span class="nav-number">3.3.1.</span> <span class="nav-text">新增一个有状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除一个有状态的节点"><span class="nav-number">3.3.2.</span> <span class="nav-text">删除一个有状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重新排序有状态的节点-amp-amp-删除或者重新排序无状态的节点"><span class="nav-number">3.3.3.</span> <span class="nav-text">重新排序有状态的节点 &amp;&amp; 删除或者重新排序无状态的节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修改算子的并行度"><span class="nav-number">3.3.4.</span> <span class="nav-text">修改算子的并行度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保存点-Savepoint-和-检查点-Checkpoint-的区别"><span class="nav-number">3.4.</span> <span class="nav-text">保存点(Savepoint) 和 检查点(Checkpoint) 的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#译者注"><span class="nav-number">3.4.0.0.0.1.</span> <span class="nav-text">译者注</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#参考文档"><span class="nav-number">3.4.0.0.0.2.</span> <span class="nav-text">参考文档</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
