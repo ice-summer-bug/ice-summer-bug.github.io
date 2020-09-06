@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="重读 JDK 源码，回顾 J.U.C 包中的工具类">
+<meta property="og:type" content="article">
+<meta property="og:title" content="J.U.C 包中的工具类">
+<meta property="og:url" content="https://summerbuger.github.io/2020/06/26/%E6%8A%80%E6%9C%AF/java/%E9%87%8D%E8%AF%BBJava%20%E6%BA%90%E7%A0%81%20%E2%80%94%E2%80%94%20J.U.C%20%E4%B8%AD%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="重读 JDK 源码，回顾 J.U.C 包中的工具类">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/atomic.integer.method.list.jpg">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/LongAdder.method.list.jpg">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/alibaba.java.guide.suggestion.LongAdder.jpg">
+<meta property="article:published_time" content="2020-06-26T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.990Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="J.U.C">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/atomic.integer.method.list.jpg">
+
+<link rel="canonical" href="https://summerbuger.github.io/2020/06/26/%E6%8A%80%E6%9C%AF/java/%E9%87%8D%E8%AF%BBJava%20%E6%BA%90%E7%A0%81%20%E2%80%94%E2%80%94%20J.U.C%20%E4%B8%AD%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>J.U.C 包中的工具类 | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2020/06/26/%E6%8A%80%E6%9C%AF/java/%E9%87%8D%E8%AF%BBJava%20%E6%BA%90%E7%A0%81%20%E2%80%94%E2%80%94%20J.U.C%20%E4%B8%AD%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          J.U.C 包中的工具类
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-06-26 21:00:00" itemprop="dateCreated datePublished" datetime="2020-06-26T21:00:00+08:00">2020-06-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">重读 JDK 源码，回顾 J.U.C 包中的工具类</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="J-U-C-包中的工具类"><a href="#J-U-C-包中的工具类" class="headerlink" title="J.U.C 包中的工具类"></a>J.U.C 包中的工具类</h1><h2 id="atomic-包中的支持原子操作的类"><a href="#atomic-包中的支持原子操作的类" class="headerlink" title="atomic 包中的支持原子操作的类"></a>atomic 包中的支持原子操作的类</h2><p>在 Java 中 i++ 这种数字的自增操作不是原子性操作， i ++ 本质上是三个操作，获得当前变量的值，对当前值进行加一，再写回新的值；在没有额外资源可以使用的情况下，只有操作才能保证 <code>读-改-写</code> 操作的原子性，为了解决这种问题，j.u.c 提供了 atomic 包，其中包含了多种类型的具有原子性的工具类</p>
+<h3 id="从-AtomicInteger-开始看-Atomic-工具类"><a href="#从-AtomicInteger-开始看-Atomic-工具类" class="headerlink" title="从 AtomicInteger 开始看 Atomic 工具类"></a>从 AtomicInteger 开始看 Atomic 工具类</h3><p>首先我们可以看看 <code>AtomicInteger</code>，其他的 Atomic 工具类的实现也和 <code>AtomicInteger</code> 类似，首先看看 <code>AtomicInteger</code> 的方法和属性</p>
+<p><img src="/assets/picture/atomic.integer.method.list.jpg" title="AtomicInteger 的方法及属性"></p>
+<p>这里首先看看和 i ++ 功能一致的方法 <code>incrementAndGet()</code>，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AtomicInteger</span> <span class="keyword">extends</span> <span class="title">Number</span> <span class="keyword">implements</span> <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// setup to use Unsafe.compareAndSwapInt for updates</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Unsafe unsafe = Unsafe.getUnsafe();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> valueOffset;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            valueOffset = unsafe.objectFieldOffset</span><br><span class="line">                (AtomicInteger.class.getDeclaredField(&quot;value&quot;));</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception ex) &#123; <span class="keyword">throw</span> <span class="keyword">new</span> Error(ex); &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Atomically increments by one the current value.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the updated value</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">incrementAndGet</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> unsafe.getAndAddInt(<span class="keyword">this</span>, valueOffset, <span class="number">1</span>) + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从代码可以看到，这里主要是依赖 <code>Unsafe</code> 这个底层工具类，从下面的代码可以看出，这里通过 <code>Unsafe</code> 提供的 <code>CAS</code> 实现了原子性操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getAndAddInt</span><span class="params">(Object var1, <span class="keyword">long</span> var2, <span class="keyword">int</span> var4)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> var5;</span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    var5 = <span class="keyword">this</span>.getIntVolatile(var1, var2);</span><br><span class="line">  &#125; <span class="keyword">while</span>(!<span class="keyword">this</span>.compareAndSwapInt(var1, var2, var5, var5 + var4));</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> var5;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其他方法也和 <code>incrementAndGet()</code> 方法类似，都是依赖 <code>Unsafe</code> 提供的 <code>native</code> 的 <code>CAS</code> 方法实现的原子性操作；</p>
+<p>除了 <code>AtomicInteger</code> 之外， <code>j.u.c</code> 还提供了 <code>AtomicIntegerArray</code>、<code>AtomicLong</code>、<code>AtomicLongArrray</code>、<code>AtomicBoolean</code>、<code>AtomicReference</code>、<code>AtomicReferenceArray</code>，可以对 int[]、long、long[]、boolean、T、T[] 等类型的数据进行原子性修改， 主要方法有：</p>
+<ul>
+<li>数字类型相关的方法:<ul>
+<li>getAndIncrement</li>
+<li>getAndDecrement</li>
+<li>incrementAndGet</li>
+<li>decrementAndGet</li>
+<li>addAndGet</li>
+<li>getAndAdd</li>
+</ul>
+</li>
+<li>原子性工具类通用方法<ul>
+<li>accumulateAndGet: 通过 accumulatorFunction自定义加和逻辑，对当前数据和参数进行加和，先加和再返回值</li>
+<li>compareAndSet</li>
+<li>getAndAccumulate: 通过 accumulatorFunction自定义加和逻辑，对当前数据和参数进行加和，返回加和前的值</li>
+<li>getAndSet</li>
+<li>getAndUpdate</li>
+<li>updateAndGet</li>
+<li>weakCompareAndSet</li>
+</ul>
+</li>
+</ul>
+<h3 id="Atomic-工具类的-ABA-问题及如何解决"><a href="#Atomic-工具类的-ABA-问题及如何解决" class="headerlink" title="Atomic 工具类的 ABA 问题及如何解决"></a>Atomic 工具类的 ABA 问题及如何解决</h3><p><code>AtomicInteger</code> 等工具类有一个问题，就是当 <code>AtomicInteger</code> 的值从 1 改为2 再从2 改为1 的时候，两次读取 <code>AtomicInteger</code> 的值都是 1 的情况下，无法确定 <code>AtomicInteger</code> 的值在两次查询之间是否被修改过，解决这个问题的思路也很简单，再加一个版本属性每次操作的时候，版本递增；或者新增一个时间戳字段，每次修改记录时间戳，JDK 采用的是方法二，提供了工具类 <code>AtomicStampedReference&lt;V&gt;</code>，它将需要被原子操作的属性 <code>reference</code> 和 int 类型的时间戳封装成 <code>Pair</code>，再对 <code>Pair</code> 进行 CAS 操作保证原子性</p>
+<h3 id="Atomic-工具类的自旋性能问题"><a href="#Atomic-工具类的自旋性能问题" class="headerlink" title="Atomic 工具类的自旋性能问题"></a>Atomic 工具类的自旋性能问题</h3><p>AtomicInteger 等工具类利用 <code>Unsafe</code> 提供的 <code>CAS</code> 操作实现了在不加锁的情况下保证原子性操作，但是部分操作再单次 <code>CAS</code> 操作选择使用 while 循环实现自旋直至成功，如 <code>sun.misc.Unsafe#getAndAddInt</code> </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">int</span> <span class="title">getAndAddInt</span><span class="params">(Object var1, <span class="keyword">long</span> var2, <span class="keyword">int</span> var4)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> var5;</span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    var5 = <span class="keyword">this</span>.getIntVolatile(var1, var2);</span><br><span class="line">  &#125; <span class="keyword">while</span>(!<span class="keyword">this</span>.compareAndSwapInt(var1, var2, var5, var5 + var4));</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> var5;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法在高并发的情况下，多个线程同时执行 <code>CAS</code> 的且多次失败的情况下，每个线程都在自旋占用 CPU 资源；<code>Doug Lea</code> 大神也发现了这个问题，所以在 <code>JDK1.8</code> 中新增了 <code>LongAdder</code>、<code>LongAccumulator</code>、<code>DoubleAdder</code>、<code>DoubleAccumulator</code> 工具类</p>
+<h4 id="LongAdder-等工具类分段操作降低竞争热度"><a href="#LongAdder-等工具类分段操作降低竞争热度" class="headerlink" title="LongAdder 等工具类分段操作降低竞争热度"></a>LongAdder 等工具类分段操作降低竞争热度</h4><p>这里对 <code>LongAdder</code> 的实现进行一个简单的分析，其他工具类和它的实现思路是基本一样的；</p>
+<p><img src="/assets/picture/LongAdder.method.list.jpg" title="LongAdder 的方法列表"></p>
+<p><code>LongAdder</code> 提供的方法列表中仅提供了单个操作接口，没有提供 <code>AtomicInteger</code> 等工具类中的 <code>getAndIncrement()</code> 或者 <code>incrementAndGet()</code> 这种复合的原子操作接口，通过 <code>increment()</code> 和 <code>longValue()</code> 组合实现，但是不具有原子性，这也是 <code>LongAdder</code> 区别于 <code>AtomicInteger</code> 等工具类的不足；</p>
+<p>下面来看看 <code>LongAdder</code> 中的主要方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LongAdder</span> <span class="keyword">extends</span> <span class="title">Striped64</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Equivalent to &#123;<span class="doctag">@code</span> add(1)&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">increment</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        add(<span class="number">1L</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Equivalent to &#123;<span class="doctag">@code</span> add(-1)&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">decrement</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        add(-<span class="number">1L</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里可以看到，<code>increment()</code> 和 <code>decrement()</code> 方法的试下都是基于 <code>add(long x)</code> 方法，下面来看看 <code>add(long x)</code> 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Adds the given value.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> x the value to add</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">long</span> x)</span> </span>&#123;</span><br><span class="line">    Cell[] as; <span class="keyword">long</span> b, v; <span class="keyword">int</span> m; Cell a;</span><br><span class="line">    <span class="keyword">if</span> ((as = cells) != <span class="keyword">null</span> || !casBase(b = base, b + x)) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> uncontended = <span class="keyword">true</span>;</span><br><span class="line">        <span class="keyword">if</span> (as == <span class="keyword">null</span> || (m = as.length - <span class="number">1</span>) &lt; <span class="number">0</span> ||</span><br><span class="line">            (a = as[getProbe() &amp; m]) == <span class="keyword">null</span> ||</span><br><span class="line">            !(uncontended = a.cas(v = a.value, v + x)))</span><br><span class="line">            longAccumulate(x, <span class="keyword">null</span>, uncontended);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>add</code> 方法首先会尝试调用 <code>casBase</code> 方法，<code>casBase</code> 方法是父类 <code>Striped64</code> 中的方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * CASes the base field.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">casBase</span><span class="params">(<span class="keyword">long</span> cmp, <span class="keyword">long</span> val)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> UNSAFE.compareAndSwapLong(<span class="keyword">this</span>, BASE, cmp, val);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它也是使用 <code>Unsafe</code> 中的 <code>CAS</code> 方法，实现原子性操作，但是这里只会尝试一次 <code>CAS</code> 操作，失败之后就会进入下一步；在下一步操作中，首先是将变量 <code>uncontended</code> 变量置为 ture，从名字就可以看出来这个变量是标识没有竞争，下面的逻辑就是判断是否存在多线程竞争了；</p>
+<p>下面的判断条件都是或逻辑</p>
+<ul>
+<li>as == null ?  ——— 如果当前的 cells 为 null，则进入下一步 <code>longAccumulate</code> 方法</li>
+<li>(m = as.length - 1) &lt; 0 ？———— 当前的 cells 是否为空，为空时直接进入下一步 <code>longAccumulate</code> 方法</li>
+<li>a = as[getProbe() &amp; m]) == null || !(uncontended = a.cas(v = a.value, v + x)<br>这一步稍微负责一点，首先通过 <code>getProbe()</code> 方法获取当前线程的 hash 标识，<code>getProbe()</code> 方法是从 <code>ThreadLocalRandom</code> 中复制来的获取线程的hash 标识的方法，通过 <code>getProbe() &amp; m</code> 来为当前线程获取 Cell，如果获取成功则对这个 Cell 段进行 CAS 操作；再根据CAS 操作成功则表示当前不存在多线程竞争，直接退出，否则则进入下一步 <code>longAccumulate</code>方法；如果当前线程的 hash 标识映射到的 Cell 段为空，也会进入下一步 <code>longAccumulate</code> 方法；</li>
+</ul>
+<p>上面的逻辑中出现了属性 <code>cells</code>，以及 <code>casBase</code> 方法中操作的属性 <code>base</code>， 这两个属性都来自 <code>LongAdder</code> 的父类 <code>Striped64</code>，<code>Striped64</code> 中定义了 <code>Cell</code> 段并管理了一组 <code>Cell</code> 段的数组和一个简单的 long 值；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Striped64</span> <span class="keyword">extends</span> <span class="title">Number</span> </span>&#123;</span><br><span class="line">  <span class="meta">@sun</span>.misc.Contended <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Cell</span> </span>&#123;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="keyword">long</span> value;</span><br><span class="line">    Cell(<span class="keyword">long</span> x) &#123; value = x; &#125;</span><br><span class="line">    <span class="function"><span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">cas</span><span class="params">(<span class="keyword">long</span> cmp, <span class="keyword">long</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> UNSAFE.compareAndSwapLong(<span class="keyword">this</span>, valueOffset, cmp, val);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Unsafe mechanics</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> sun.misc.Unsafe UNSAFE;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> valueOffset;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">          UNSAFE = sun.misc.Unsafe.getUnsafe();</span><br><span class="line">          Class&lt;?&gt; ak = Cell.class;</span><br><span class="line">          valueOffset = UNSAFE.objectFieldOffset</span><br><span class="line">              (ak.getDeclaredField(<span class="string">&quot;value&quot;</span>));</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">          <span class="keyword">throw</span> <span class="keyword">new</span> Error(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Table of cells. When non-null, size is a power of 2.</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="keyword">transient</span> <span class="keyword">volatile</span> Cell[] cells;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">  * Base value, used mainly when there is no contention, but also as</span></span><br><span class="line"><span class="comment">  * a fallback during table initialization races. Updated via CAS.</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="keyword">transient</span> <span class="keyword">volatile</span> <span class="keyword">long</span> base;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码可以看出 <code>Cell</code> 可以视为删减版的 <code>AtomicInteger</code>，它维护了个 long 类型的值，并提供了基于 <code>Unsafe</code> 的 <code>cas</code> 方法；<code>Striped64</code> 维护了一组 <code>Cell</code> 数组和一个 long 值，没有多线程竞争的情况下对 long 值进行修改，出现了多线程竞争的情况下，为线程匹配一个 <code>Cell</code> 段，对 <code>Cell</code> 段维护的数值进行修改，最后获取值的时候在对 <code>base</code> 和 <code>Cell[]</code> 中的数值进行求和；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">long</span> <span class="title">sum</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Cell[] as = cells; Cell a;</span><br><span class="line">    <span class="keyword">long</span> sum = base;</span><br><span class="line">    <span class="keyword">if</span> (as != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; as.length; ++i) &#123;</span><br><span class="line">            <span class="keyword">if</span> ((a = as[i]) != <span class="keyword">null</span>)</span><br><span class="line">                sum += a.value;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的逻辑可以简单分析出，<code>LongAdder</code> 的思路就是线程竞争不充分的时候，和 AtomicInteger 类似对单个值进行 CAS 操作的竞争，不同点在于不会自旋等待；在多线程情况下从多个线程自旋竞争同一个字段的 <code>CAS</code> 操作，优化为多个线程自旋竞争多个字段的 <code>CAS</code> 操作，而线程和 <code>Cell</code> 端的映射通过线程的 hash 标识进行再次hash 映射；而最后需要获取只的时候，需要对所有 <code>Cell</code> 中的数值以及 <code>base</code> 进行加和即可；唯一的不足是占用的内存空间更多了一点，但是在多线程高并发的情况下能提高效率，这点空间的占用也不算什么了；而且在线程竞争不激烈的情况下还是只使用了单个数值；</p>
+<p>这里可以简单总结一下 <strong><em>低并发的时候 <code>AtomicInteger</code> 等工具类的性能和 <code>LongAdder</code> 的性能差不多；高并发的情况下，<code>LongAdder</code> 明显更高效</em></strong></p>
+<p>下面还是会继续分析一下 <code>longAccumulate</code> 方法的逻辑</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">longAccumulate</span><span class="params">(<span class="keyword">long</span> x, LongBinaryOperator fn, <span class="keyword">boolean</span> wasUncontended)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> h;</span><br><span class="line">  <span class="keyword">if</span> ((h = getProbe()) == <span class="number">0</span>) &#123;</span><br><span class="line">    ThreadLocalRandom.current(); <span class="comment">// force initialization</span></span><br><span class="line">    h = getProbe();</span><br><span class="line">    wasUncontended = <span class="keyword">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">boolean</span> collide = <span class="keyword">false</span>;                <span class="comment">// True if last slot nonempty</span></span><br><span class="line">  <span class="keyword">for</span> (;;) &#123;</span><br><span class="line">    Cell[] as; Cell a; <span class="keyword">int</span> n; <span class="keyword">long</span> v;</span><br><span class="line">    <span class="keyword">if</span> ((as = cells) != <span class="keyword">null</span> &amp;&amp; (n = as.length) &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> ((a = as[(n - <span class="number">1</span>) &amp; h]) == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (cellsBusy == <span class="number">0</span>) &#123;       <span class="comment">// Try to attach new Cell</span></span><br><span class="line">          Cell r = <span class="keyword">new</span> Cell(x);   <span class="comment">// Optimistically create</span></span><br><span class="line">          <span class="keyword">if</span> (cellsBusy == <span class="number">0</span> &amp;&amp; casCellsBusy()) &#123;</span><br><span class="line">            <span class="keyword">boolean</span> created = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">try</span> &#123;               <span class="comment">// Recheck under lock</span></span><br><span class="line">              Cell[] rs; <span class="keyword">int</span> m, j;</span><br><span class="line">              <span class="keyword">if</span> ((rs = cells) != <span class="keyword">null</span> &amp;&amp;</span><br><span class="line">                (m = rs.length) &gt; <span class="number">0</span> &amp;&amp;</span><br><span class="line">                rs[j = (m - <span class="number">1</span>) &amp; h] == <span class="keyword">null</span>) &#123;</span><br><span class="line">                rs[j] = r;</span><br><span class="line">                created = <span class="keyword">true</span>;</span><br><span class="line">              &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">              cellsBusy = <span class="number">0</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (created)</span><br><span class="line">              <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">continue</span>;           <span class="comment">// Slot is now non-empty</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        collide = <span class="keyword">false</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (!wasUncontended)       <span class="comment">// CAS already known to fail</span></span><br><span class="line">        wasUncontended = <span class="keyword">true</span>;      <span class="comment">// Continue after rehash</span></span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (a.cas(v = a.value, ((fn == <span class="keyword">null</span>) ? v + x : fn.applyAsLong(v, x))))</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (n &gt;= NCPU || cells != as)</span><br><span class="line">        collide = <span class="keyword">false</span>;            <span class="comment">// At max size or stale</span></span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (!collide)</span><br><span class="line">        collide = <span class="keyword">true</span>;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (cellsBusy == <span class="number">0</span> &amp;&amp; casCellsBusy()) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">if</span> (cells == as) &#123;      <span class="comment">// Expand table unless stale</span></span><br><span class="line">            Cell[] rs = <span class="keyword">new</span> Cell[n &lt;&lt; <span class="number">1</span>];</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i)</span><br><span class="line">                rs[i] = as[i];</span><br><span class="line">            cells = rs;</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            cellsBusy = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        collide = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">continue</span>;                   <span class="comment">// Retry with expanded table</span></span><br><span class="line">      &#125;</span><br><span class="line">      h = advanceProbe(h);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (cellsBusy == <span class="number">0</span> &amp;&amp; cells == as &amp;&amp; casCellsBusy()) &#123;</span><br><span class="line">      <span class="keyword">boolean</span> init = <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">try</span> &#123;                           <span class="comment">// Initialize table</span></span><br><span class="line">        <span class="keyword">if</span> (cells == as) &#123;</span><br><span class="line">          Cell[] rs = <span class="keyword">new</span> Cell[<span class="number">2</span>];</span><br><span class="line">          rs[h &amp; <span class="number">1</span>] = <span class="keyword">new</span> Cell(x);</span><br><span class="line">          cells = rs;</span><br><span class="line">          init = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        cellsBusy = <span class="number">0</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (init)</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (casBase(v = base, ((fn == <span class="keyword">null</span>) ? v + x : fn.applyAsLong(v, x))))</span><br><span class="line">      <span class="keyword">break</span>;                          <span class="comment">// Fall back on using base</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个方法比较长，逐步拆分看看</p>
+<ul>
+<li>首先如果当前线程的 hash 标识没有初始化则进行初始化，并且将 wasUncontented 置为 true，表示当前没有竞争</li>
+<li>接下来是个自旋死循环，保证 CAS 更新成功</li>
+<li>循环中首先如果 <code>cells</code> 不为空 <ul>
+<li>如果线程映射到的 <code>Cell</code> 为 null 且 <code>cellsBusy</code> 标识位标识 <code>cells</code> 不是在调整大小或者新建 <code>Cell</code> 的时候，尝试创建一个新的 <code>Cell</code>，加入到数据中</li>
+<li>如果线程映射到的 <code>Cell</code> 不为 null，则进行一次 <code>CAS</code> 尝试，成功了则返回</li>
+<li>如果 <code>cellsBusy</code> 标识了 <code>cells</code> 没有被操作，而且 <code>cells</code> 满了之后，对 <code>cells</code> 进行扩容，每次扩大两倍，然后进入下一次循环</li>
+</ul>
+</li>
+<li>如果 <code>cells</code> 为空而且成功将 <code>cellsBusy</code> 标识位置为 true 的时候，对 cells 初始化，长度为2，并且为当前现在映射的下标位置填充一个 <code>Cell</code></li>
+</ul>
+<p>上边的流程分析中始终多次出现了 <code>cellsBusy</code>，这个字段用于标识 <code>cells</code> 数组是否在调整大小或者被创建中，并且提供了 <code>CAS</code> 方法对这个标志位进行修改</p>
+<pre><code>    总结一下，需要进行原子性数据统计的时候，推荐使用 LongAdder 等代替 AtomicLong, 《阿里巴巴 Java 开发手册》 中也推荐使用 LongAdder</code></pre>
+<p><img src="/assets/picture/alibaba.java.guide.suggestion.LongAdder.jpg" title="《阿里巴巴开发规范》推荐使用 LongAdder"></p>
+<h2 id="CountDownLatch-锁存器"><a href="#CountDownLatch-锁存器" class="headerlink" title="CountDownLatch(锁存器)"></a>CountDownLatch(锁存器)</h2><p><code>CountDownLatch</code> 工具类的作用，从注解中就能看出来</p>
+<pre><code>    A synchronization aid that allows one or more threads to wait until a set of operations being performed in other threads completes.
+    一个同步辅助工具类，允许一个或多个线程等待其他线程中一组操作完成后再进行其他操作。</code></pre>
+<p>下面看看方法列表</p>
+<table>
+<thead>
+<tr>
+<th>方法签名</th>
+<th>返回值</th>
+<th>方法说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CountDownLatch(int)</td>
+<td>CountDownLatch</td>
+<td>构造方法，构造一个锁存器，并指定计数值</td>
+</tr>
+<tr>
+<td>countDown()</td>
+<td>void</td>
+<td>对锁存器的计数值进行递减，线程安全，如果计数值减到了 0 则释放所有等待的线程</td>
+</tr>
+<tr>
+<td>await() throws InterruptedException</td>
+<td>void</td>
+<td>阻塞当前线程进入等待状态，直至锁存器的计数值达到零，除非当前线程被中断</td>
+</tr>
+<tr>
+<td>await(long timeout, TimeUnit unit) throws InterruptedException</td>
+<td>boolean, 锁存器减为0 时返回 true，如果超过指定时间计数值没有减为0 返回 false</td>
+<td>阻塞当前线程进入等待状态，直至锁存器的计数值达到零，除非线程被中断或者超过了指定的等待时间</td>
+</tr>
+<tr>
+<td>getCount()</td>
+<td>long</td>
+<td>返回锁存器的计数值</td>
+</tr>
+</tbody></table>
+<p>从上面的方法列表可以看出，<code>CountDownLatch(锁存器)</code> 维护了一个计数值，可以让当前线程阻塞等待，直到计数值减为 0，这个数值也就是需要等待的线程的数量；通过这个同步工具类可以做到让一个或一组线程等待其他线程完成之后在进行在进行下一步的操作</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountDownLatchDemo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> threadCount = <span class="number">5</span>;</span><br><span class="line">    CountDownLatch waitSignal = <span class="keyword">new</span> CountDownLatch(threadCount);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; threadCount; i++) &#123;</span><br><span class="line">      <span class="keyword">new</span> Thread(<span class="keyword">new</span> WaitedTask(<span class="string">&quot;waited-thread-&quot;</span> + i, waitSignal)).start();</span><br><span class="line">    &#125;</span><br><span class="line">    waitSignal.await();</span><br><span class="line">    System.out.println(<span class="string">&quot;主线程等待其他线程执行完毕后, 执行后续动作&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">WaitedTask</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> CountDownLatch countDownLatch;</span><br><span class="line"></span><br><span class="line">    WaitedTask(String name, CountDownLatch countDownLatch) &#123;</span><br><span class="line">      <span class="keyword">this</span>.name = name;</span><br><span class="line">      <span class="keyword">this</span>.countDownLatch = countDownLatch;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 开始执行操作&quot;</span>);</span><br><span class="line">        <span class="keyword">int</span> timeVal = ThreadLocalRandom.current().nextInt(<span class="number">5</span>);</span><br><span class="line">        TimeUnit.SECONDS.sleep(timeVal);</span><br><span class="line">        System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 操作完成, 达到等待点&quot;</span>);</span><br><span class="line">        countDownLatch.countDown();</span><br><span class="line">      &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>    线程 waited-thread-0 开始执行操作
+    线程 waited-thread-2 开始执行操作
+    线程 waited-thread-1 开始执行操作
+    线程 waited-thread-3 开始执行操作
+    线程 waited-thread-4 开始执行操作
+    线程 waited-thread-0 操作完成, 达到等待点
+    线程 waited-thread-4 操作完成, 达到等待点
+    线程 waited-thread-3 操作完成, 达到等待点
+    线程 waited-thread-2 操作完成, 达到等待点
+    线程 waited-thread-1 操作完成, 达到等待点
+    主线程等待其他线程执行完毕后, 执行后续动作
+
+    Process finished with exit code 0</code></pre>
+<p>在上面这个简单的示例中我们能看到正常情况下，<code>CountDownLatch</code> 可以做到让主线程等待一组线程完成一系列操作，但是这里也会有一个问题，假设这一组线程中有一个线程执行过程中出现了异常，程序还能继续执行吗？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">WaitedTask</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> String name;</span><br><span class="line">  <span class="keyword">private</span> CountDownLatch countDownLatch;</span><br><span class="line"></span><br><span class="line">  WaitedTask(String name, CountDownLatch countDownLatch) &#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">this</span>.countDownLatch = countDownLatch;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 开始执行操作&quot;</span>);</span><br><span class="line">      <span class="keyword">int</span> timeVal = ThreadLocalRandom.current().nextInt(<span class="number">5</span>);</span><br><span class="line">      TimeUnit.SECONDS.sleep(timeVal);</span><br><span class="line">      <span class="keyword">if</span> (name.contains(<span class="string">&quot;3&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;一个用于测试的异常...&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 操作完成, 达到等待点&quot;</span>);</span><br><span class="line">      countDownLatch.countDown();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">      e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里简单模拟一个抛出异常的情况，再看看执行结果~</p>
+<pre><code>    线程 waited-thread-0 开始执行操作
+    线程 waited-thread-2 开始执行操作
+    线程 waited-thread-3 开始执行操作
+    线程 waited-thread-1 开始执行操作
+    线程 waited-thread-4 开始执行操作
+    线程 waited-thread-4 操作完成, 达到等待点
+    线程 waited-thread-0 操作完成, 达到等待点
+    线程 waited-thread-1 操作完成, 达到等待点
+    Exception in thread &quot;Thread-3&quot; 线程 waited-thread-2 操作完成, 达到等待点
+    java.lang.IllegalStateException: 一个用于测试的异常...
+      at com.liam.learn.CountDownLatchDemo$WaitedTask.run(CountDownLatchDemo.java:43)
+      at java.lang.Thread.run(Thread.java:748)</code></pre>
+<p>结果很遗憾，一个线程抛出异常之后，主线程陷入了阻塞等待的状态，没办法继续执行后续操作~ 因为 <code>CountDownLatch(锁存器)</code> 的计数值始终不能减为 0，<code>CountDownLatch#await()</code> 方法一直处于一个阻塞状态；</p>
+<h2 id="CyclicBarrier"><a href="#CyclicBarrier" class="headerlink" title="CyclicBarrier"></a>CyclicBarrier</h2><h2 id="CompletionService"><a href="#CompletionService" class="headerlink" title="CompletionService"></a>CompletionService</h2><h2 id="ThreadLocalRandom"><a href="#ThreadLocalRandom" class="headerlink" title="ThreadLocalRandom"></a>ThreadLocalRandom</h2><h2 id="TimeUnit"><a href="#TimeUnit" class="headerlink" title="TimeUnit"></a>TimeUnit</h2><h2 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h2><h3 id="ReentrantLock"><a href="#ReentrantLock" class="headerlink" title="ReentrantLock"></a>ReentrantLock</h3><h3 id="ReentrantReadWriteLock"><a href="#ReentrantReadWriteLock" class="headerlink" title="ReentrantReadWriteLock"></a>ReentrantReadWriteLock</h3><h3 id="Condition"><a href="#Condition" class="headerlink" title="Condition"></a>Condition</h3><h3 id="LockSupport"><a href="#LockSupport" class="headerlink" title="LockSupport"></a>LockSupport</h3>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"># Java</a>
+              <a href="/tags/J-U-C/" rel="tag"># J.U.C</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/06/26/%E6%8A%80%E6%9C%AF/java/%E9%87%8D%E8%AF%BBJava%20%E6%BA%90%E7%A0%81%20%E2%80%94%E2%80%94%20Java%20%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="prev" title="Java 线程池">
+      <i class="fa fa-chevron-left"></i> Java 线程池
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/06/26/%E6%8A%80%E6%9C%AF/java/Java%20%E4%B8%AD%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%8A%B6%E6%80%81/" rel="next" title="Java 中线程的状态">
+      Java 中线程的状态 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#J-U-C-%E5%8C%85%E4%B8%AD%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">J.U.C 包中的工具类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#atomic-%E5%8C%85%E4%B8%AD%E7%9A%84%E6%94%AF%E6%8C%81%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E7%9A%84%E7%B1%BB"><span class="nav-number">1.1.</span> <span class="nav-text">atomic 包中的支持原子操作的类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E-AtomicInteger-%E5%BC%80%E5%A7%8B%E7%9C%8B-Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-number">1.1.1.</span> <span class="nav-text">从 AtomicInteger 开始看 Atomic 工具类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84-ABA-%E9%97%AE%E9%A2%98%E5%8F%8A%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="nav-number">1.1.2.</span> <span class="nav-text">Atomic 工具类的 ABA 问题及如何解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E8%87%AA%E6%97%8B%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98"><span class="nav-number">1.1.3.</span> <span class="nav-text">Atomic 工具类的自旋性能问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#LongAdder-%E7%AD%89%E5%B7%A5%E5%85%B7%E7%B1%BB%E5%88%86%E6%AE%B5%E6%93%8D%E4%BD%9C%E9%99%8D%E4%BD%8E%E7%AB%9E%E4%BA%89%E7%83%AD%E5%BA%A6"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">LongAdder 等工具类分段操作降低竞争热度</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CountDownLatch-%E9%94%81%E5%AD%98%E5%99%A8"><span class="nav-number">1.2.</span> <span class="nav-text">CountDownLatch(锁存器)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CyclicBarrier"><span class="nav-number">1.3.</span> <span class="nav-text">CyclicBarrier</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CompletionService"><span class="nav-number">1.4.</span> <span class="nav-text">CompletionService</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadLocalRandom"><span class="nav-number">1.5.</span> <span class="nav-text">ThreadLocalRandom</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TimeUnit"><span class="nav-number">1.6.</span> <span class="nav-text">TimeUnit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lock"><span class="nav-number">1.7.</span> <span class="nav-text">Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrantLock"><span class="nav-number">1.7.1.</span> <span class="nav-text">ReentrantLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrantReadWriteLock"><span class="nav-number">1.7.2.</span> <span class="nav-text">ReentrantReadWriteLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Condition"><span class="nav-number">1.7.3.</span> <span class="nav-text">Condition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LockSupport"><span class="nav-number">1.7.4.</span> <span class="nav-text">LockSupport</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

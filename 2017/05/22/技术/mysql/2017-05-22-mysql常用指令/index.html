@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="mysql 常用指令和操作">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mysql常用指令">
+<meta property="og:url" content="https://summerbuger.github.io/2017/05/22/%E6%8A%80%E6%9C%AF/mysql/2017-05-22-mysql%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="mysql 常用指令和操作">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2017-05-22T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.993Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://summerbuger.github.io/2017/05/22/%E6%8A%80%E6%9C%AF/mysql/2017-05-22-mysql%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>mysql常用指令 | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2017/05/22/%E6%8A%80%E6%9C%AF/mysql/2017-05-22-mysql%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mysql常用指令
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-05-22 21:00:00" itemprop="dateCreated datePublished" datetime="2017-05-22T21:00:00+08:00">2017-05-22</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/mysql/" itemprop="url" rel="index"><span itemprop="name">mysql</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">mysql 常用指令和操作</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="执行-sql-文件"><a href="#执行-sql-文件" class="headerlink" title="执行 .sql 文件"></a>执行 <code>.sql</code> 文件</h3><p><em>方法1</em></p>
+<pre><code>mysql -h1.1.1.1 -P3306 -uadmin -ppwd db_name &lt; test.sql</code></pre>
+<p><em>方法2</em></p>
+<ol>
+<li>使用 <code>mysql-client</code> 登录到 mysql 服务器</li>
+<li>source /root/path/to/.sql</li>
+</ol>
+<h3 id="mysql-查看-binlog"><a href="#mysql-查看-binlog" class="headerlink" title="mysql 查看 binlog"></a>mysql 查看 binlog</h3><p><code>mysql</code> 提供了 <code>mysqlbinlog</code> 指令，用于查看binlog</p>
+<p>先来一个小例子, 查看某一段时间的 bin log</p>
+<pre><code>    mysqlbinlog -h[host]  -P[port] -u[username] -p[password] --read-from-remote-server [binlog file name]
+    --base64-output=decode-rows --start-datetime=&#39;2017-11-02 00:00:00&#39;
+    --stop-datetime=&#39;2017-11-02 00:10:00&#39;</code></pre>
+<p>看了上面这个小例子，发现一个小问题: <em><em>binlog file name 从哪来？</em></em><br>这个需要我们去mysql中去查看</p>
+<pre><code>    mysql&gt; mysql -u[username] -p[password]    ## 登录mysql
+    mysql&gt; show variables like &#39;log_bin&#39;;
+    +---------------+-------+
+    | Variable_name | Value |
+    +---------------+-------+
+    | log_bin       | OFF   | # 这个参数说明当前mysql 没有开启binlog 日志
+    +---------------+-------+</code></pre>
+<p>这里又引入一个问题: <em><em>如何开启 mysql 的 binlog</em></em></p>
+<p>在 <code>mysql</code> 的 <code>官方文档</code> 中，对于 <code>binlog</code> 的开启只有一段内容</p>
+<pre><code>    Binary logging is enabled by default (the log_bin system variable is set to ON). The exception is if you use mysqld to initialize the data directory manually by invoking it with the --initialize or --initialize-insecure option, when binary logging is disabled by default, but can be enabled by specifying the --log-bin option.
+    二进制日志是默认启用（系统变量log_bin默认设置为ON）。唯一的例外是如果你使用mysqld来初始化数据目录手动调用它的 --initialize 或 --initialize-insecure 选项，当二进制日志默认是禁用的，但可以通过指定 `--log-bin` 选项启用。</code></pre>
+<p>我们开始设置 <code>mysql</code> 的启动配置， 这里有两种方式</p>
+<ol>
+<li><p>直接在启动命令行中添加参数</p>
+<pre><code> sudo /usr/local/mysql/bin/mysqld --basedir=/usr/local/mysql --log-bin=mysql-bin --user=\_mysql</code></pre>
+</li>
+<li><p>在 mysql 配置文件中增加配置信息<br>这个时候我们遇到一个问题: Mysql 的配置文件在哪？</p>
+<pre><code> &gt; sudo mysqld --verbose --help | grep -A2 &quot;Default options are read from the following files in the given order:&quot;
+ Default options are read from the following files in the given order:
+ /etc/my.cnf /etc/mysql/my.cnf /usr/local/mysql/etc/my.cnf ~/.my.cnf</code></pre>
+</li>
+</ol>
+<p>从上面可以看到 <code>mysql</code> 的配置文件如下：</p>
+<pre><code>    /etc/my.cnf /etc/mysql/my.cnf /usr/local/mysql/etc/my.cnf ~/.my.cnf</code></pre>
+<p>在 <code>/etc/my.cnf</code> 添加配置如下</p>
+<pre><code>    [mysqld]
+    basedir=/usr/local/mysql
+    datadir=/usr/local/mysql/data
+    plugin-dir=/usr/local/mysql/lib/plugin
+    user=\_mysql
+    log-bin=mysql-bin
+    port=3306</code></pre>
+<p>我们来尝试启动 <code>mysql</code>，但是却没能启动成功， 报错信息如下</p>
+<pre><code>    [ERROR] You have enabled the binary log, but you haven&#39;t provided the mandatory server-id. Please refer to the proper server start-up parameters documentation</code></pre>
+<p>遇到问题，我们再去看看官方文档，在官方文档中有如下介绍，在 mysql 5.7 及以上版本中，需要设置参数 <code>server-id</code></p>
+<pre><code>    In MySQL 5.7, a server ID had to be specified when binary logging was enabled, or the server would not start. The server_id system variable is set to 1 by default. The server can be started with this default ID when binary logging is enabled, but a warning message is issued if you do not specify a server ID explicitly using the --server-id option. For servers that are used in a replication topology, you must specify a unique non-zero server ID for each server.
+    在MySQL 5.7中，当启用二进制日志时，必须指定服务器ID，否则服务器将无法启动。系统变量 server_id 默认设置为1。当启用二进制日志记录时，服务器可以以这个默认ID启动，但如果未显式使用服务器ID选项指定服务器ID，则会发出警告消息。对于复制拓扑中使用的服务器，必须为每个服务器指定唯一的非零服务器ID。</code></pre>
+<p>将 <code>/etc/my.cnf</code> 配置修改如下：</p>
+<pre><code>    [mysqld]
+    basedir=/usr/local/mysql
+    datadir=/usr/local/mysql/data
+    plugin-dir=/usr/local/mysql/lib/plugin
+    user=\_mysql
+    log-bin=mysql-bin
+    port=3306
+    server-id=1</code></pre>
+<p>再次启动mysql，成功了！但是有个问题，mysql 的日志直接输出在控制台中，需要输出到指定文件夹中，在 <code>/etc/my.cnf</code> 的 <code>[mysqld]</code> 中增加配置</p>
+<pre><code>    log-error=/usr/local/mysql/data/local.err</code></pre>
+<p>我们开启了binlog之后，可以使用 <code>mysqlbinlog</code> 来查看binlog了！<br>回到第一个问题 <em><em>binlog file name 从哪来？</em></em></p>
+<pre><code>    mysql&gt; show master status;
+
+    +------------------+-----------+--------------+------------------+-------------------------------------------------+
+    | File             | Position  | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set                               |
+    +------------------+-----------+--------------+------------------+-------------------------------------------------+
+    | mysql-bin.000065 | 516819919 |              |                  | 63c58e9d-e063-11e6-8a0e-6c92bf324c90:1-19804498 |
+    +------------------+-----------+--------------+------------------+-------------------------------------------------+
+    1 row in set (0.00 sec)</code></pre>
+<p>这里第一列就是 binlog 日志文件的名称了！</p>
+<pre><code>    mysqlbinlog
+    -?, --help          Display this help and exit.
+                        查看帮助信息
+    --base64-output=name
+                        Determine when the output statements should be
+                        base64-encoded BINLOG statements: &#39;never&#39; disables it and
+                        works only for binlogs without row-based events;
+                        &#39;decode-rows&#39; decodes row events into commented
+                        pseudo-SQL statements if the --verbose option is also
+                        given; &#39;auto&#39; prints base64 only when necessary (i.e.,
+                        for row-based events and format description events).  If
+                        no --base64-output[=name] option is given at all, the
+                        default is &#39;auto&#39;.
+    --bind-address=name IP address to bind to.
+    --character-sets-dir=name
+                        Directory for character set files.
+    -d, --database=name 指明查询binlog 的数据库，如：-dtest，查看test 数据库
+    --rewrite-db=name   Rewrite the row event to point so that it can be applied
+                        to a new database
+    -#, --debug[=#]     This is a non-debug version. Catch this and exit.
+    --debug-check       This is a non-debug version. Catch this and exit.
+    --debug-info        This is a non-debug version. Catch this and exit.
+    --default-auth=name Default authentication client-side plugin to use.
+    -D, --disable-log-bin
+                        Disable binary log. This is useful, if you enabled
+                        --to-last-log and are sending the output to the same
+                        MySQL server. This way you could avoid an endless loop.
+                        You would also like to use it when restoring after a
+                        crash to avoid duplication of the statements you already
+                        have. NOTE: you will need a SUPER privilege to use this
+                        option.
+    -F, --force-if-open Force if binlog was not closed properly.
+                        (Defaults to on; use --skip-force-if-open to disable.)
+    -f, --force-read    Force reading unknown binlog events.
+    -H, --hexdump       Augment output with hexadecimal and ASCII event dump.
+    -h, --host=name     Get the binlog from server.
+    -i, --idempotent    Notify the server to use idempotent mode before applying
+                        Row Events
+    -l, --local-load=name
+                        Prepare local temporary files for LOAD DATA INFILE in the
+                        specified directory.
+    -o, --offset=#      Skip the first N entries.
+    -p, --password[=name]
+                        Password to connect to remote server.
+    --plugin-dir=name   Directory for client-side plugins.
+    -P, --port=#        Port number to use for connection or 0 for default to, in
+                        order of preference, my.cnf, $MYSQL_TCP_PORT,
+                        /etc/services, built-in default (3306).
+    --protocol=name     The protocol to use for connection (tcp, socket, pipe,
+                        memory).
+    -R, --read-from-remote-server
+                        Read binary logs from a MySQL server. This is an alias
+                        for read-from-remote-master=BINLOG-DUMP-NON-GTIDS.
+    --read-from-remote-master=name
+                        Read binary logs from a MySQL server through the
+                        COM_BINLOG_DUMP or COM_BINLOG_DUMP_GTID commands by
+                        setting the option to either BINLOG-DUMP-NON-GTIDS or
+                        BINLOG-DUMP-GTIDS, respectively. If
+                        --read-from-remote-master=BINLOG-DUMP-GTIDS is combined
+                        with --exclude-gtids, transactions can be filtered out on
+                        the master avoiding unnecessary network traffic.
+    --raw               Requires -R. Output raw binlog data instead of SQL
+                        statements, output is to log files.
+    -r, --result-file=name
+                        Direct output to a given file. With --raw this is a
+                        prefix for the file names.
+    --secure-auth       Refuse client connecting to server if it uses old
+                        (pre-4.1.1) protocol. Deprecated. Always TRUE
+    --server-id=#       Extract only binlog entries created by the server having
+                        the given id.
+    --server-id-bits=#  Set number of significant bits in server-id
+    --set-charset=name  Add &#39;SET NAMES character_set&#39; to the output.
+    -s, --short-form    Just show regular queries: no extra info and no row-based
+                        events. This is for testing only, and should not be used
+                        in production systems. If you want to suppress
+                        base64-output, consider using --base64-output=never
+                        instead.
+    -S, --socket=name   The socket file to use for connection.
+    --ssl-mode=name     SSL connection mode.
+    --ssl               Deprecated. Use --ssl-mode instead.
+                        (Defaults to on; use --skip-ssl to disable.)
+    --ssl-verify-server-cert
+                        Deprecated. Use --ssl-mode=VERIFY_IDENTITY instead.
+    --ssl-ca=name       CA file in PEM format.
+    --ssl-capath=name   CA directory.
+    --ssl-cert=name     X509 cert in PEM format.
+    --ssl-cipher=name   SSL cipher to use.
+    --ssl-key=name      X509 key in PEM format.
+    --ssl-crl=name      Certificate revocation list.
+    --ssl-crlpath=name  Certificate revocation list path.
+    --tls-version=name  TLS version to use, permitted values are: TLSv1, TLSv1.1
+    --start-datetime=name
+                        Start reading the binlog at first event having a datetime
+                        equal or posterior to the argument; the argument must be
+                        a date and time in the local time zone, in any format
+                        accepted by the MySQL server for DATETIME and TIMESTAMP
+                        types, for example: 2004-12-25 11:25:56 (you should
+                        probably use quotes for your shell to set it properly).
+    -j, --start-position=#
+                        Start reading the binlog at position N. Applies to the
+                        first binlog passed on the command line.
+    --stop-datetime=name
+                        Stop reading the binlog at first event having a datetime
+                        equal or posterior to the argument; the argument must be
+                        a date and time in the local time zone, in any format
+                        accepted by the MySQL server for DATETIME and TIMESTAMP
+                        types, for example: 2004-12-25 11:25:56 (you should
+                        probably use quotes for your shell to set it properly).
+    --stop-never        Wait for more data from the server instead of stopping at
+                        the end of the last log. Implicitly sets --to-last-log
+                        but instead of stopping at the end of the last log it
+                        continues to wait till the server disconnects.
+    --stop-never-slave-server-id=#
+                        The slave server_id used for --read-from-remote-server
+                        --stop-never. This option cannot be used together with
+                        connection-server-id.
+    --connection-server-id=#
+                        The slave server_id used for --read-from-remote-server.
+                        This option cannot be used together with
+                        stop-never-slave-server-id.
+    --stop-position=#   Stop reading the binlog at position N. Applies to the
+                        last binlog passed on the command line.
+    -t, --to-last-log   Requires -R. Will not stop at the end of the requested
+                        binlog but rather continue printing until the end of the
+                        last binlog of the MySQL server. If you send the output
+                        to the same MySQL server, that may lead to an endless
+                        loop.
+    -u, --user=name     链接数据库的用户名
+    -v, --verbose       Reconstruct pseudo-SQL statements out of row events. -v
+                        -v adds comments on column data types.
+    -V, --version       查看 `mysqlbinlog` 版本信息
+    --open-files-limit=#
+                        Used to reserve file descriptors for use by this program.
+    -c, --verify-binlog-checksum
+                        Verify checksum binlog events.
+    --binlog-row-event-max-size=#
+                        The maximum size of a row-based binary log event in
+                        bytes. Rows will be grouped into events smaller than this
+                        size if possible. This value must be a multiple of 256.
+    --skip-gtids        Do not preserve Global Transaction Identifiers; instead
+                        make the server execute the transactions as if they were
+                        new.
+    --include-gtids=name
+                        打印binlog 信息时，只打印指定的部分全局事务id对应的binglog 信息
+    --exclude-gtids=name
+                        打印binlog 信息时，排除部分全局事务id对应的binglog 信息</code></pre>
+<h4 id="待解决问题"><a href="#待解决问题" class="headerlink" title="待解决问题"></a>待解决问题</h4><p>如果在 mac os 的设置中启动了mysql 而且勾选了 <code>Automatically Start MySQL Server on Startup</code>, 当你想要关闭 mysql 的时候，mysql 会自动重启！！！<br>这个问题找了好久才发现，至于这个不断重启功能的实现待研究…</p>
+<h3 id="mysql-查看存储过程"><a href="#mysql-查看存储过程" class="headerlink" title="mysql 查看存储过程"></a>mysql 查看存储过程</h3><h4 id="查看存储过程状态"><a href="#查看存储过程状态" class="headerlink" title="查看存储过程状态"></a>查看存储过程状态</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">procedure</span> <span class="keyword">status</span>;</span><br></pre></td></tr></table></figure>
+<p>输出结果：</p>
+<pre><code>    mysql&gt; show procedure status\G
+    *************************** 1. row ***************************
+                  Db: db_name
+                Name: procedure_name
+                Type: PROCEDURE
+             Definer: root@localhost
+            Modified: 2017-05-10 14:10:00
+             Created: 2017-05-10 14:10:00
+       Security_type: DEFINER
+             Comment:
+    character_set_client: utf8mb4
+    collation_connection: utf8mb4_general_ci
+    Database Collation: utf8_general_ci
+    1 row in set (0.02 sec)</code></pre>
+<h4 id="查看存储过程具体定义"><a href="#查看存储过程具体定义" class="headerlink" title="查看存储过程具体定义"></a>查看存储过程具体定义</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">show</span> <span class="keyword">create</span> <span class="keyword">procedure</span> %procedure_name%;</span><br></pre></td></tr></table></figure>
+
+<h4 id="创建存储过程"><a href="#创建存储过程" class="headerlink" title="创建存储过程"></a>创建存储过程</h4><p><strong><em>注意：在创建存储过程的时候，语句中的分号会导致报错，需要用 <code>DELIMITER</code> 重新定义分隔符</em></strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">DELIMITER $$</span><br><span class="line"><span class="comment">-- to create procedure</span></span><br><span class="line">DELIMITER ;</span><br></pre></td></tr></table></figure>
+
+<h4 id="删除存储过程"><a href="#删除存储过程" class="headerlink" title="删除存储过程"></a>删除存储过程</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> &#123;<span class="keyword">PROCEDURE</span> | <span class="keyword">FUNCTION</span>&#125; [<span class="keyword">IF</span> <span class="keyword">EXISTS</span>] sp_name</span><br></pre></td></tr></table></figure>
+
+<h3 id="mysql-查看数据库和表容量大小"><a href="#mysql-查看数据库和表容量大小" class="headerlink" title="mysql 查看数据库和表容量大小"></a>mysql 查看数据库和表容量大小</h3><p><code>information_schema</code> 库中有个 <code>TABLES</code> 表</p>
+<pre><code>    mysql&gt; show create table TABLES\G
+    *************************** 1. row ***************************
+    Table: TABLES
+    Create Table: CREATE TEMPORARY TABLE `TABLES` (
+    `TABLE_CATALOG` varchar(512) NOT NULL DEFAULT &#39;&#39;,
+    `TABLE_SCHEMA` varchar(64) NOT NULL DEFAULT &#39;&#39;,
+    `TABLE_NAME` varchar(64) NOT NULL DEFAULT &#39;&#39;,
+    `TABLE_TYPE` varchar(64) NOT NULL DEFAULT &#39;&#39;,
+    `ENGINE` varchar(64) DEFAULT NULL,
+    `VERSION` bigint(21) unsigned DEFAULT NULL,
+    `ROW_FORMAT` varchar(10) DEFAULT NULL,
+    `TABLE_ROWS` bigint(21) unsigned DEFAULT NULL,
+    `AVG_ROW_LENGTH` bigint(21) unsigned DEFAULT NULL,
+    `DATA_LENGTH` bigint(21) unsigned DEFAULT NULL,
+    `MAX_DATA_LENGTH` bigint(21) unsigned DEFAULT NULL,
+    `INDEX_LENGTH` bigint(21) unsigned DEFAULT NULL,
+    `DATA_FREE` bigint(21) unsigned DEFAULT NULL,
+    `AUTO_INCREMENT` bigint(21) unsigned DEFAULT NULL,
+    `CREATE_TIME` datetime DEFAULT NULL,
+    `UPDATE_TIME` datetime DEFAULT NULL,
+    `CHECK_TIME` datetime DEFAULT NULL,
+    `TABLE_COLLATION` varchar(32) DEFAULT NULL,
+    `CHECKSUM` bigint(21) unsigned DEFAULT NULL,
+    `CREATE_OPTIONS` varchar(255) DEFAULT NULL,
+    `TABLE_COMMENT` varchar(2048) NOT NULL DEFAULT &#39;&#39;
+    ) ENGINE=MEMORY DEFAULT CHARSET=utf8
+    1 row in set (0.00 sec)</code></pre>
+<p>其中主要字段是</p>
+<p><code>TABLE_SCHEMA</code>: 数据库名称<br><code>TABLE_NAME</code>: 表名称<br><code>DATA_LENGTH</code>: 数据占用的空间大小，单位是字节<br><code>INDEX_LENGTH</code>: 索引占用的空间大小，单位是字节</p>
+<h4 id="查看数据库占用空间大小"><a href="#查看数据库占用空间大小" class="headerlink" title="查看数据库占用空间大小"></a>查看数据库占用空间大小</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="keyword">SUM</span>(DATA_LENGTH) + <span class="keyword">SUM</span>(INDEX_LENGTH)) / <span class="number">1024</span> / <span class="number">1024</span></span><br><span class="line"><span class="keyword">FROM</span> information_schema.TABLES</span><br><span class="line"><span class="keyword">WHERE</span> TABLE_SCHEMA = <span class="string">&#x27;database_name&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="查看表占用空间大小"><a href="#查看表占用空间大小" class="headerlink" title="查看表占用空间大小"></a>查看表占用空间大小</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> (<span class="keyword">SUM</span>(DATA_LENGTH) + <span class="keyword">SUM</span>(INDEX_LENGTH)) / <span class="number">1024</span> / <span class="number">1024</span></span><br><span class="line"><span class="keyword">FROM</span> information_schema.TABLES</span><br><span class="line"><span class="keyword">WHERE</span> TABLE_NAME = <span class="string">&#x27;table_name&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="mysql-求时间差距"><a href="#mysql-求时间差距" class="headerlink" title="mysql 求时间差距"></a>mysql 求时间差距</h3><p><code>timestampdiff(unit,datetime_expr1,datetime_expr2)</code> 比较两个 timestamp 时间间隔，返回单位是unit 的数值</p>
+<p>例如</p>
+<p><code>timestampdiff(second,&#39;2018-01-01 00:00:00&#39;,&#39;2018-01-01 00:00:02&#39;)</code> 得到 2</p>
+<h3 id="表结构常用修改语句"><a href="#表结构常用修改语句" class="headerlink" title="表结构常用修改语句"></a>表结构常用修改语句</h3><h4 id="重置-AUTO-INCREMENT"><a href="#重置-AUTO-INCREMENT" class="headerlink" title="重置 AUTO_INCREMENT"></a>重置 AUTO_INCREMENT</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> &lt;<span class="keyword">Table</span> <span class="keyword">Name</span>&gt; AUTO_INCREMENT = <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/03/01/%E6%8A%80%E6%9C%AF/spring/2017-03-01-Spring%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" rel="prev" title="如何正确的创建 prototype 类型的 bean">
+      <i class="fa fa-chevron-left"></i> 如何正确的创建 prototype 类型的 bean
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/09/01/%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0%E4%B9%8B%E5%90%8D%E8%AF%8D%E6%B1%87%E6%80%BB/" rel="next" title="计算广告学习笔记之名词汇总">
+      计算广告学习笔记之名词汇总 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%A7%E8%A1%8C-sql-%E6%96%87%E4%BB%B6"><span class="nav-number">1.</span> <span class="nav-text">执行 .sql 文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E6%9F%A5%E7%9C%8B-binlog"><span class="nav-number">2.</span> <span class="nav-text">mysql 查看 binlog</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BE%85%E8%A7%A3%E5%86%B3%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.</span> <span class="nav-text">待解决问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E6%9F%A5%E7%9C%8B%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">mysql 查看存储过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="nav-number">3.1.</span> <span class="nav-text">查看存储过程状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E5%85%B7%E4%BD%93%E5%AE%9A%E4%B9%89"><span class="nav-number">3.2.</span> <span class="nav-text">查看存储过程具体定义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">3.3.</span> <span class="nav-text">创建存储过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B"><span class="nav-number">3.4.</span> <span class="nav-text">删除存储过程</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E6%9F%A5%E7%9C%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E8%A1%A8%E5%AE%B9%E9%87%8F%E5%A4%A7%E5%B0%8F"><span class="nav-number">4.</span> <span class="nav-text">mysql 查看数据库和表容量大小</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8D%A0%E7%94%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F"><span class="nav-number">4.1.</span> <span class="nav-text">查看数据库占用空间大小</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E8%A1%A8%E5%8D%A0%E7%94%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F"><span class="nav-number">4.2.</span> <span class="nav-text">查看表占用空间大小</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql-%E6%B1%82%E6%97%B6%E9%97%B4%E5%B7%AE%E8%B7%9D"><span class="nav-number">5.</span> <span class="nav-text">mysql 求时间差距</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E7%BB%93%E6%9E%84%E5%B8%B8%E7%94%A8%E4%BF%AE%E6%94%B9%E8%AF%AD%E5%8F%A5"><span class="nav-number">6.</span> <span class="nav-text">表结构常用修改语句</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%8D%E7%BD%AE-AUTO-INCREMENT"><span class="nav-number">6.1.</span> <span class="nav-text">重置 AUTO_INCREMENT</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

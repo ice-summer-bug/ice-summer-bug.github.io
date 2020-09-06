@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="重读计算广告，记录问题和收获">
+<meta property="og:type" content="article">
+<meta property="og:title" content="重读计算广告">
+<meta property="og:url" content="https://summerbuger.github.io/2018/05/14/%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/%E9%87%8D%E8%AF%BB%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="重读计算广告，记录问题和收获">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-05-14T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.997Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="计算广告">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://summerbuger.github.io/2018/05/14/%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/%E9%87%8D%E8%AF%BB%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>重读计算广告 | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2018/05/14/%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/%E9%87%8D%E8%AF%BB%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          重读计算广告
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-05-14 21:00:00" itemprop="dateCreated datePublished" datetime="2018-05-14T21:00:00+08:00">2018-05-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/" itemprop="url" rel="index"><span itemprop="name">计算广告</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">重读计算广告，记录问题和收获</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>看了一遍刘鹏老师的《计算广告》，获益匪浅，但是部分地方还是不够明确，决定重读一番，学习笔记记录如下，如有错漏敬请斧正。</p>
+<h3 id="在线广告"><a href="#在线广告" class="headerlink" title="在线广告"></a>在线广告</h3><p>在线广告开创了以人群为投放目标，以产品为导向的技术型投放模式，得到了广告主的青睐。在线广告开启了大规模自动化的利用数据改善产品和提高收入的先河，提供了一种盈利模式。</p>
+<h4 id="什么是大数据"><a href="#什么是大数据" class="headerlink" title="什么是大数据"></a>什么是大数据</h4><p>如果有的数据处理问题无法通过数据采样的方法来降低温处理的复杂程度，就必须利用一些专门为海量数据处理而设计的计算和存储技术来实现。</p>
+<p>大数据问题的 <code>4V特征</code></p>
+<ol>
+<li>Volume (规模)</li>
+<li>Variety (多样性)</li>
+<li>Velocity (高速)</li>
+<li>Value (价值)</li>
+</ol>
+<p>大数据问题的特征：当数据的采用率的递增叫显著提升解决问题的效果，而且两者基本成正比，这就是典型的大数据问题。</p>
+<h4 id="为什么要学习计算广告"><a href="#为什么要学习计算广告" class="headerlink" title="为什么要学习计算广告"></a>为什么要学习计算广告</h4><p>计算广告作为目前最成熟的得到充分商业化和规模化的大数据应用<br>1） 提供了规模化的将用户行为数据转为可衡量的商业价值的完整产品线和解决方案；<br>2） 孕育和孵化了较为成熟的数据加工和交易产业链，并对其中的<code>用户隐私</code>边界有深入的探讨；<br>3） 由于商业上的限制条件，计算广告的技术和产品逻辑比个性推荐更加复杂周密；</p>
+<h4 id="什么是广告"><a href="#什么是广告" class="headerlink" title="什么是广告"></a>什么是广告</h4><pre><code>    广告是由已经确定的`出资人`通过各种`媒介`进行的有关产品（商品、服务和观点）的，通常是有偿的、有组织的、综合的、劝服性的非人员的信息传播活动。
+                                                                                                        ————《当代广告学》</code></pre>
+<p>这个定义中有两个主动参与方 ———— <code>出资人</code> 和 <code>媒介</code>, 还有一个被动的参与方, 被劝服的广告的观看者。在计算广告中术语分别是：<code>需求方(Demand)</code>(广告主、广告主代理商、其他形式的采买方)、<code>供给方(Supply)</code>(媒体、其他形式的变现平台)、 <code>广告受众(Adversiter)</code></p>
+<p>传统广告主要是电视、报纸广告，在大量投放和优化效果广告的能力显然是缺乏的，只能是宣传品牌形象、提升中长期购买率和利润空间；而在线广告可以实现低成本的投放个性化广告，而且部分数字数字（如搜索、电子商务）可以明确的知道用户的意图，能够很好的优化广告效果。</p>
+<p><em><em>广告的根本目的是<code>广告主</code>通过<code>媒体</code>达到<code>低成本</code>的<code>用户</code>接触</em></em></p>
+<p>这个定义中的 <code>底成本</code> 需要一个评价指标，这就是 ———— <code>投入产出比（Return On Investment, ROI）</code>，即某次广告活动的总产出与总投入的比例。总投入很容易确定，但是总产出无法确定，但是我们我们也可以通过对各个广告渠道的对比，评估广告成本是否令人满意。</p>
+<pre><code>      一切付费的信息、产品或服务的传播渠道，都是广告。</code></pre>
+<h4 id="在线广告创意类型"><a href="#在线广告创意类型" class="headerlink" title="在线广告创意类型"></a>在线广告创意类型</h4><blockquote>
+<p>横幅广告</p>
+<p>文字链接广告</p>
+<p>富媒体广告</p>
+<p>视频广告</p>
+<blockquote>
+<p>前插片广告： 视频播放前的</p>
+<p>暂停广告：视频播放中，暂停时播放的广告</p>
+</blockquote>
+<p>社交广告：社交产品中的原生广告</p>
+<p>移动广告</p>
+<p>邮件定向营销广告</p>
+</blockquote>
+<h4 id="在线广告简史"><a href="#在线广告简史" class="headerlink" title="在线广告简史"></a>在线广告简史</h4><p>在线媒体出现并发展到一定的流量规模之后，就在页面上直接插入广告位，这种照搬报纸广告在互联网上展示广告的产品形式称为 <code>展示广告(display advertising)</code> , 而售卖广告的模式是采用合同的方式确定某一广告位在某一时间段为某特定广告主所独占，并且根据双方的要求，确定广告创意和投放策略，称为 <code>合约广告</code>。</p>
+<p>随着在线媒体的流量快速增长以及在线广告逐渐被广告主了解接受，在线媒体提价的行为被接受，但是媒体流量和品牌认知度都相对稳定之后，提价就不再是提高收入的合适方案了。<br>但是很快在线广告不同于传统媒体广告的本质特点就被发现了：<br><em><em>在线广告可以对不同的广告受众展示不同的广告创意</em></em></p>
+<p>这种广告投放的方式就是 <code>定向广告(trageted advertising)</code>。 而要做到这一点，首先要从技术上获取用户的属性标签，例如用户的性别、年龄等标签，这就是<code>受众定向</code>；而且这时候的广告不能再是静态的嵌入到网页中，而是响应前端的实时请求，根据用户标签自动选择并返回合适的广告， 这就是 <code>广告投放(ad serving)</code>。<br>此时广告的售卖方式还是以合同的形式进行，并且在合同中注明媒体需要保证广告的投放量以及投放量未完成时赔偿方案。这种<code>合约广告</code>的交易方式被称为<code>担保式投放（Guaranteed Delivery）</code>, 这种合约还是主要面对品牌广告主，计费方式是<code>按千次展示收费(Cost per Mille, CPM)</code>。</p>
+<p>合约广告有两个技术难点：</p>
+<ol>
+<li>各个合约的目标受众会有交叉覆盖，如何有效的将流量分配到交叉覆盖上；</li>
+<li>在在线环境下实时的完成每一次展示决策；<br>这两个难点的问题称为 <code>在线分配</code>， 可以使用 <code>带约束优化</code> 的数学框架来探索这个问题。</li>
+</ol>
+<p><code>定向投放</code>的目的是供给方为了<code>拆分流量</code>提高营收，但是<em>如果一开始就提供非常精细的定向，反而会造成售卖率下降</em>，品牌广告主都喜欢优质的流量，如果定向十分精确了略差的流量就卖不出去了。</p>
+<p><code>受众定向</code>的产生使得市场发展呈现两个趋势</p>
+<ol>
+<li>定向标签越来越精准；</li>
+<li>广告主的数量不断膨胀；</li>
+</ol>
+<p>上述两个趋势增加了 <code>在线分配</code> 问题的处理难度，降低了流量的变现能力。从业者开始考虑放弃量的保证，供给方只向广告主保证单位流量的成本，对每次展现都基本按照收益最高的原则来决策，这就是 <code>竞价广告</code>。</p>
+<p><code>竞价广告</code> 的产生原因如上，然而现实中它的出现来自于 <code>搜索广告</code>，<code>搜索引擎</code>的关键词就是一个精准的定向，很自然的就采用的竞价的售卖方式<br>将搜索关键词换成浏览页面中的关键词就成了 <code>上下文广告</code>（信息流广告的鼻祖）</p>
+<p>从宏观市场上看 <code>竞价广告</code> 摆脱了 <code>合约广告</code> 中合约的约束，让广告主能够充分竞争；但是微观上的最优方案并不是整个市场的最大收益。竞价机制的发展，诞生了 <code>广义第二高价 (Generalized Second Price, GSP)</code> 竞价理论。</p>
+<p>有了竞价机制和受众定向，不被品牌广告主看好的中小互联网媒体将流量打包给一个组织，组织将媒体资源按照人群或者上下文标签打包售卖，用竞价的方式决定流量分配。这个组织就是 ———— <code>广告网络(ad Network, ADN)</code>。 <code>ADN</code> 采用的计费方式一般是 <code>按点击收费(Cost Per Click, CPC)</code>。最重要的是，ADN 的出现使得不受品牌广告主青睐的比较差流量有了变现的途径。</p>
+<p>ADN 只通过出价接口提供价格约定，那么由谁来保证量呢？这就催生了一种需求方产品；此时流量采买发生了几点变化：</p>
+<ol>
+<li>流量采买更多的面向受众而非媒体或广告位进行采买；</li>
+<li>需求方产品需要通过技术手段保证广告主量的要去，并在此基础上帮助广告主优化效果。</li>
+</ol>
+<p><em>问题：ADN 的竞价流程是什么样的？</em></p>
+<p>AND 定义好定向标签，将流量分类打包出售，而不会去控制每次展示的出价；需求方选择了合适的标签组合并阶段性的调整出价来间接控制效果。而需求方产品对接多个 ADN 或媒体按人群一站式采买广告并优化投入产出比，这就是 <code>交易终端(Trading Desk, TD)</code>。</p>
+<p>ADN 将媒体的广告受众打上了用户标签，然后批量售卖，但这不能满足需求方越来越明确的利益要求。例如：某电商需要通过给它的忠实用户投放广告来推广某产品，此时需求方需要按照自己的人群定义来挑选流量；流量拍卖的过程从广告主预先出价批量购买，变成了每次展示时实时出价，媒体方提供广告展示的页面的上下文页面URL和用户标识等信息给需求方，需求方就可以完成定制化的人群选择和出价，这就是 <code>实时竞价(Real Time Bidding, RTB)</code>。市场诞生了一个聚合大量媒体的剩余流量并且采用实时竞价方式为他们变现的产品形态 ———— <code>广告交易平台（ad Exchange, ADX）</code>。</p>
+<p>通过实时竞价的方式，按照定制化的人群标签购买广告，这样的产品就是<code>需求方平台(Demand Side Platform, DSP)</code>。<code>DSP</code> 需要尽可能准确地估计每次展示带来的期望价值，而因为充分的环境信息使得深入计算和估计成为可能。基于 <code>DSP</code> 的广告采买方式叫作 <code>程序化交易(programmatic trade)</code>, 除了 <code>RTB</code> 外还有 <code>优选(perfered deals)</code> 以及 <code>私有交易市场(Private Market Place, PMP)</code>。</p>
+<p>在在线广告的发展历史上，定向技术和交易形式的进化是一条主线。从固定位置合约交易到受众定向、担保投放，再到竞价交易方式，最后发展成开放的实时竞价交易市场。这一主线的核心驱动力是越来越多的数据源为广告决策提供支持，从而提升广告的效果。广告发展的另外一条主线是产品展现逻辑上的发展：从广告位和内容相对独立，到通过搜索广告认识到内容和广告对立起来未必是好的选择，搜索广告和信息流广告突出的效果就是因为内容的展现和触发逻辑高度一致，因此产生了将内容和广告以某种方式统一决策或排序的广告产品 ———— <code>原生广告</code>。<code>原生广告</code> 的思路在移动设备上很有前景。</p>
+<h4 id="泛广告商业产品"><a href="#泛广告商业产品" class="headerlink" title="泛广告商业产品"></a>泛广告商业产品</h4><p><code>泛广告商业产品</code> 的本质都是 <code>付费推广</code>，这些付费推广模式的表现方式更加多样化，用户的感知程度和参与程度也大不相同，但是产品的销售模式却与狭义的广告基本相同，但这些商业产品本质上也是在线广告。</p>
+<ol>
+<li>团购</li>
+<li>游戏联运</li>
+<li>固定位导航</li>
+<li>返利购买</li>
+</ol>
+<h3 id="计算广告基础"><a href="#计算广告基础" class="headerlink" title="计算广告基础"></a>计算广告基础</h3><p>计算广告的主要特点有 <code>可衡量的效果</code>以及相应的<code>计算优化</code>。</p>
+<p>利润优化问题的概念框架</p>
+<p>广告产品的收入衡量指标,也是计算广告中最核心的可衡量指标 ———— <code>千次展现期望收入(eCPM, excepted Cost Per Mille)</code>。<br><code>eCPM</code> 可分解为 <code>点击率(Click Through Rate, CTR)</code> 和 <code>点击价值</code></p>
+<p>在线广告产品有很多种计费方式，不同的计费方式反映了不同的市场分工; 也就是说供给方和需求方如何分工估计点击率和点击价值，与整个市场的资源优化配置有关。</p>
+<h4 id="广告信息接收过程"><a href="#广告信息接收过程" class="headerlink" title="广告信息接收过程"></a>广告信息接收过程</h4><ol>
+<li>曝光：广告在页面上展示了</li>
+<li>关注： 广告受众关注到了页面上的广告</li>
+<li>理解： 广告受众理解了广告的诉求</li>
+<li>接受： 广告表达的诉求得到广告受众的认同</li>
+<li>保持： 追求长期转化的品牌广告，希望传达的信息给用户留下深刻的印象</li>
+<li>决策： 广告最终带来的实际转化行为，例如购买</li>
+</ol>
+<h4 id="互联网广告的技术特点"><a href="#互联网广告的技术特点" class="headerlink" title="互联网广告的技术特点"></a>互联网广告的技术特点</h4><ol>
+<li>技术和计算导向： 数字媒体的特点使得在线广告可以进行精确的受众定向；“由于在线广告有独特的竞价交易方式，可以对广告效果进行有效的预估和优化”。</li>
+<li>效果的可衡量性： 广告的展示、点击数据直接可以衡量广告的效果</li>
+<li>创意和投放方式的标准化：标准化的驱动力来自于受众定向和程序化购买</li>
+<li>媒体概念的多样化：数字媒体的交互功能越来越丰富多彩，和线下媒体已经有了本质差别。不同在线媒体在转化的链条上位置不一样，有些更接近最后的决策，有些是为了吸引潜在用户。</li>
+<li>数据驱动的投放决策：在线广告是目前最成熟的大数据引用。在线广告投放流程是：广泛收取用户的行为数据和广告反馈数据，利用云计算基础设施给用户打上合适的标签，同样根据数据在多个广告竞争同一次展示是作出决策，再将投放结果的统计数据反馈广告操作人员以调整投放策略。</li>
+</ol>
+<h4 id="计算广告的核心问题"><a href="#计算广告的核心问题" class="headerlink" title="计算广告的核心问题"></a>计算广告的核心问题</h4><pre><code>      计算广告的核心问题，是为一系列用户和环境的组合找到最适合的广告投放策略以优化整体广告活动的利润。</code></pre>
+<p>上述问题的公式化</p>
+<p>max E (ri - qi)</p>
+<p>其中 i 表示从第 1 次到第 T 次之间的一次广告展示。优化目标是在这 T 次展示的总收入(r)与总成本(q)的差。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A/" rel="tag"># 计算广告</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/03/01/%E6%8A%80%E6%9C%AF/golang/2018-03-01-golang%E5%9F%BA%E7%A1%80/" rel="prev" title="golang 基础学习笔记（-）———— 基本语法">
+      <i class="fa fa-chevron-left"></i> golang 基础学习笔记（-）———— 基本语法
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/05/16/%E6%8A%80%E6%9C%AF/golang/golang%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E6%B5%85%E6%9E%90/" rel="next" title="golang 内存管理浅析">
+      golang 内存管理浅析 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%B9%BF%E5%91%8A"><span class="nav-number"></span> <span class="nav-text">在线广告</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%A4%A7%E6%95%B0%E6%8D%AE"><span class="nav-number">1.</span> <span class="nav-text">什么是大数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%AD%A6%E4%B9%A0%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A"><span class="nav-number">2.</span> <span class="nav-text">为什么要学习计算广告</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%B9%BF%E5%91%8A"><span class="nav-number">3.</span> <span class="nav-text">什么是广告</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%B9%BF%E5%91%8A%E5%88%9B%E6%84%8F%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">在线广告创意类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%A8%E7%BA%BF%E5%B9%BF%E5%91%8A%E7%AE%80%E5%8F%B2"><span class="nav-number">5.</span> <span class="nav-text">在线广告简史</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%9B%E5%B9%BF%E5%91%8A%E5%95%86%E4%B8%9A%E4%BA%A7%E5%93%81"><span class="nav-number">6.</span> <span class="nav-text">泛广告商业产品</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A%E5%9F%BA%E7%A1%80"><span class="nav-number"></span> <span class="nav-text">计算广告基础</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B9%BF%E5%91%8A%E4%BF%A1%E6%81%AF%E6%8E%A5%E6%94%B6%E8%BF%87%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">广告信息接收过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%92%E8%81%94%E7%BD%91%E5%B9%BF%E5%91%8A%E7%9A%84%E6%8A%80%E6%9C%AF%E7%89%B9%E7%82%B9"><span class="nav-number">2.</span> <span class="nav-text">互联网广告的技术特点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E5%B9%BF%E5%91%8A%E7%9A%84%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">计算广告的核心问题</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

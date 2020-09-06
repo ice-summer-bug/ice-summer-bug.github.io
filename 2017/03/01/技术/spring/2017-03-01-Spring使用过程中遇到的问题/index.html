@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="如何正确的创建 prototype 类型的 bean">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何正确的创建 prototype 类型的 bean">
+<meta property="og:url" content="https://summerbuger.github.io/2017/03/01/%E6%8A%80%E6%9C%AF/spring/2017-03-01-Spring%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="如何正确的创建 prototype 类型的 bean">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/prototypebeaninfo.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/prototypecomponent.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/realProtoTypeComponent1.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/realProtoTypeComponent2.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/bean_instancetiation_with_constructor.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/BeanFactory.determineConstructorsFromBeanPostProcessors.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/AutowiredAnnotationBeanPostProcessor.determineCandidateConstructors.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/instantiation_strategy_instantiate.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/instantiation_strategy_instatiate_bean.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/CglibSubclassingInstantiationStrategy.instantiateWithMethodInjection.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/CglibSubclassCreator.instantiate.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/CglibSubclassCreator.createEnhancedSubclass.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/CglibSubclassCreator.CALLBACK_TYPES.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/LookupOverrideMethodInterceptor.png">
+<meta property="article:published_time" content="2017-03-01T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.995Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/prototypebeaninfo.png">
+
+<link rel="canonical" href="https://summerbuger.github.io/2017/03/01/%E6%8A%80%E6%9C%AF/spring/2017-03-01-Spring%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>如何正确的创建 prototype 类型的 bean | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2017/03/01/%E6%8A%80%E6%9C%AF/spring/2017-03-01-Spring%E4%BD%BF%E7%94%A8%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何正确的创建 prototype 类型的 bean
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2017-03-01 21:00:00" itemprop="dateCreated datePublished" datetime="2017-03-01T21:00:00+08:00">2017-03-01</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">如何正确的创建 prototype 类型的 bean</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这里把使用 <code>Spring</code> 过程中遇到的问题做个记录，有些给出了解决方案，有些没有，欢迎同道读者斧正！</p>
+<h1 id="如何正确的创建-prototype-类型的-Spring-bean"><a href="#如何正确的创建-prototype-类型的-Spring-bean" class="headerlink" title="如何正确的创建 prototype 类型的 Spring bean"></a>如何正确的创建 <code>prototype</code> 类型的 <code>Spring bean</code></h1><p>这里先尝试的去创建一个 <code>prototype</code> 的 <code>bean</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ProtoTypeComponent</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">int</span> random;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">ProtoTypeComponent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// random 值设置为一个随机值，</span></span><br><span class="line">    <span class="keyword">this</span>.random = ThreadLocalRandom.current().nextInt(<span class="number">100000</span>);</span><br><span class="line">    LOGGER.info(<span class="string">&quot;create a new ProtoTypeComponent with random:&#123;&#125;&quot;</span>, random);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRandom</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> random;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，我们在Controller 中注入这个 <code>prototype bean</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Resource</span></span><br><span class="line">  <span class="keyword">private</span> ProtoTypeComponent protoTypeComponent;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@RequestMapping(value = &quot;/hello&quot;)</span></span><br><span class="line">  <span class="meta">@ResponseBody</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Object <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;&#123;\&quot;class\&quot;: \&quot;&quot;</span> + protoTypeComponent + <span class="string">&quot;\&quot;, \&quot;random\&quot;:\&quot;&quot;</span></span><br><span class="line">        + protoTypeComponent.getRandom() + <span class="string">&quot;\&quot;&#125;&quot;</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们开始请求这个 http 接口</p>
+<p><img src="/assets/picture/prototypebeaninfo.png" title="请求上方 /hello 接口获取 prototype bean 信息"></p>
+<p>不断的刷新页面，返回的结果都是一模一样！我们再来看看日志</p>
+<p><img src="/assets/picture/prototypecomponent.png" title="请求上方 /hello 接口时的日志信息"></p>
+<p>从上面的日志上我们看到这个 <code>prototype bean</code> 的构造方法只被调用了一次！</p>
+<p>到这里，我感到奇怪了，为什么这个 <code>prototype bean</code> 成了 <code>singleton bean</code> 了？</p>
+<p>这个时候我想了 《Spring揭秘》 中看到的正解， 之前这个现象出现的原因是 <code>HelloController</code> 是 <code>singleton</code> 类型的，这个 <code>bean</code> 只会被初始化一次， 而 <code>HelloController</code> 依赖的 <code>ProtoTypeComponent</code> 也只会被注入一次！<br>到这里，谜底揭晓：</p>
+<p><em><code>singleton bean</code> 依赖的 <code>prototype bean</code> 会 “变成” <code>singleton bean</code></em></p>
+<p>这里，解决这个问题的第一个方案也出现了：</p>
+<pre><code>    依赖 `prototype bean` 也必须是 `prototype bean`</code></pre>
+<p>很明显这个方案不能解决很多状况， 我们继续这个问题</p>
+<p>再来翻翻 <code>《Spring 揭秘》</code> 找找答案<br>我们看到了两个答案</p>
+<ol>
+<li>使用方法注入</li>
+<li>继承 ApplicationContextAware 每次去获取bean</li>
+</ol>
+<h2 id="使用方法注入"><a href="#使用方法注入" class="headerlink" title="使用方法注入"></a>使用方法注入</h2><p>在传统的 xml 配置方式中我们需要这样配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;protoTypeBean&quot;</span> <span class="attr">class</span>=<span class="string">&quot;...impl.ProtoTypeService&quot;</span> <span class="attr">singleton</span>=<span class="string">&quot;false&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">class</span> = <span class="string">&quot;...impl.SimpleServiceImpl&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">lookup-method</span> <span class="attr">name</span>=<span class="string">&quot;getProtoTypeBean&quot;</span> <span class="attr">bean</span>=<span class="string">&quot;protoTypeBean&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>getProtoTypeBean 方法定义如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> ProtoTypeService protoTypeBean;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> ProtoTypeService <span class="title">getProtoTypeBean</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> protoTypeBean;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在我们更倾向于使用注解，那么基于注解怎么实现上面这种方式呢？<br>我们这里引入 <code>@Lookup</code> 注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * An annotation that indicates &#x27;lookup&#x27; methods, to be overridden by the container</span></span><br><span class="line"><span class="comment"> * to redirect them back to the &#123;<span class="doctag">@link</span> org.springframework.beans.factory.BeanFactory&#125;</span></span><br><span class="line"><span class="comment"> * for a &#123;<span class="doctag">@code</span> getBean&#125; call. This is essentially an annotation-based version of the</span></span><br><span class="line"><span class="comment"> * XML &#123;<span class="doctag">@code</span> lookup-method&#125; attribute, resulting in the same runtime arrangement.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;The resolution of the target bean can either be based on the return type</span></span><br><span class="line"><span class="comment"> * (&#123;<span class="doctag">@code</span> getBean(Class)&#125;) or on a suggested bean name (&#123;<span class="doctag">@code</span> getBean(String)&#125;),</span></span><br><span class="line"><span class="comment"> * in both cases passing the method&#x27;s arguments to the &#123;<span class="doctag">@code</span> getBean&#125; call</span></span><br><span class="line"><span class="comment"> * for applying them as target factory method arguments or constructor arguments.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;Such lookup methods can have default (stub) implementations that will simply</span></span><br><span class="line"><span class="comment"> * get replaced by the container, or they can be declared as abstract - for the</span></span><br><span class="line"><span class="comment"> * container to fill them in at runtime. In both cases, the container will generate</span></span><br><span class="line"><span class="comment"> * runtime subclasses of the method&#x27;s containing class via CGLIB, which is why such</span></span><br><span class="line"><span class="comment"> * lookup methods can only work on beans that the container instantiates through</span></span><br><span class="line"><span class="comment"> * regular constructors: i.e. lookup methods cannot get replaced on beans returned</span></span><br><span class="line"><span class="comment"> * from factory methods where we cannot dynamically provide a subclass for them.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * &lt;p&gt;&lt;b&gt;Concrete limitations in typical Spring configuration scenarios:&lt;/b&gt;</span></span><br><span class="line"><span class="comment"> * When used with component scanning or any other mechanism that filters out abstract</span></span><br><span class="line"><span class="comment"> * beans, provide stub implementations of your lookup methods to be able to declare</span></span><br><span class="line"><span class="comment"> * them as concrete classes. And please remember that lookup methods won&#x27;t work on</span></span><br><span class="line"><span class="comment"> * beans returned from &#123;<span class="doctag">@code</span> <span class="doctag">@Bean</span>&#125; methods in configuration classes; you&#x27;ll have</span></span><br><span class="line"><span class="comment"> * to resort to &#123;<span class="doctag">@code</span> <span class="doctag">@Inject</span> Provider&amp;lt;TargetBean&amp;gt;&#125; or the like instead.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> Juergen Hoeller</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 4.1</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> org.springframework.beans.factory.BeanFactory#getBean(Class, Object...)</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> org.springframework.beans.factory.BeanFactory#getBean(String, Object...)</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Target(ElementType.METHOD)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> Lookup &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * This annotation attribute may suggest a target bean name to look up.</span></span><br><span class="line"><span class="comment">     * If not specified, the target bean will be resolved based on the</span></span><br><span class="line"><span class="comment">     * annotated method&#x27;s return type declaration.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">String <span class="title">value</span><span class="params">()</span> <span class="keyword">default</span> &quot;&quot;</span>;</span><br></pre></td></tr></table></figure>
+<p>从上面的代码能看出：<br>这个注解只能修饰方法，根据方法的返回值类型创建对应的Bean，底层机制是调用 <code>org.springframework.beans.factory.BeanFactory#getBean(Class, Object...)</code> 或 <code>org.springframework.beans.factory.BeanFactory#getBean(String, Object...)</code></p>
+<p>先来使用 <code>@Lookup</code> 注解改成一下我们尝试创建 有状态的 <code>prototype bean</code></p>
+<p>修正的代码如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> Logger LOGGER = LoggerFactory.getLogger(<span class="keyword">this</span>.getClass());</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> ProtoTypeComponent protoTypeComponent;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@RequestMapping(value = &quot;/hello&quot;)</span></span><br><span class="line">  <span class="meta">@ResponseBody</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> Object <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ProtoTypeComponent component = getProtoTypeComponent();</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;&#123;\&quot;class\&quot;: \&quot;&quot;</span> + component + <span class="string">&quot;\&quot;, \&quot;random\&quot;:\&quot;&quot;</span></span><br><span class="line">        + component.getRandom() + <span class="string">&quot;\&quot;&#125;&quot;</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Lookup</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> ProtoTypeComponent <span class="title">getProtoTypeComponent</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> protoTypeComponent;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>让我们运行起 <code>tomcat</code> 看看结果：</p>
+<p><img src="/assets/picture/realProtoTypeComponent1.png"><br><img src="/assets/picture/realProtoTypeComponent2.png"></p>
+<p>很明显，我们成功的创建了 <code>prototype bean</code>!</p>
+<h3 id="Lookup-注解是如何入注入-prototype-类型的依赖的？"><a href="#Lookup-注解是如何入注入-prototype-类型的依赖的？" class="headerlink" title="@Lookup 注解是如何入注入 prototype 类型的依赖的？"></a>@Lookup 注解是如何入注入 prototype 类型的依赖的？</h3><p>下面我们来揭秘，<code>@Lookup</code> 注解是如果实现注入 <code>prototype bean</code> 的：</p>
+<h4 id="Bean-的实例化"><a href="#Bean-的实例化" class="headerlink" title="Bean 的实例化"></a><code>Bean</code> 的实例化</h4><p>Bean 的创建主要是 <code>BeanFactory#doCreateBean</code> 方法，主要是三个步骤</p>
+<ol>
+<li>createBeanInstance: 通过构造函数，反射创建 Bean 的示例，但是没有填充任何属性</li>
+<li>populateBean: 对 Bean 中的属性进行填充，处理依赖属性</li>
+<li>initializeBean: 反射调用 afterPropertiesSet 方法或者自定义的 initMethod 进行初始化</li>
+</ol>
+<p><code>createBeanInstance</code> 方法中，Bean 的实例化流程主要如下</p>
+<p>首先是在 <code>determineConstructorsFromBeanPostProcessors</code> 方法中通过 <code>BeanPostProcessor</code> 查找构造方法用于实例化 Bean</p>
+<p><img src="/assets/picture/bean_instancetiation_with_constructor.png" alt="BeanFactory#createBeanInstance" title="BeanFactory#createBeanInstance"><br><img src="/assets/picture/BeanFactory.determineConstructorsFromBeanPostProcessors.png" alt="BeanFactory#determineConstructorsFromBeanPostProcessors" title="BeanFactory#determineConstructorsFromBeanPostProcessors"></p>
+<p>其中，在 <code>AutowiredAnnotationBeanPostProcessor</code> 中的 <code>determineCandidateConstructors</code> 方法中在查找构造方法之前，会先对 <code>@Lookup</code> 注解修饰的方法进行处理</p>
+<ol>
+<li>在类中查找 <code>@Lookup</code> 修饰的方法</li>
+<li>通过方法上的 <code>@Lookup</code> 注解的信息新建 <code>LookupOverride</code></li>
+<li>将 <code>LookupOverride</code> 注入到 <code>BeanDefinition</code> 的 <code>methodOverrides</code> 中</li>
+</ol>
+<p>后面会用到 <code>BeanDefinition</code> 的 <code>methodOverrides</code></p>
+<p><img src="/assets/picture/AutowiredAnnotationBeanPostProcessor.determineCandidateConstructors.png" alt="AutowiredAnnotationBeanPostProcessor.determineCandidateConstructors" title="AutowiredAnnotationBeanPostProcessor.determineCandidateConstructors"></p>
+<p>而具体的实例化过程是调用 <code>InstantiationStrategy#instantiate</code> 进行实例化</p>
+<p><img src="/assets/picture/instantiation_strategy_instantiate.png" alt="AbstractAutowireCapableBeanFactory#instantiateBean" title="AbstractAutowireCapableBeanFactory#instantiateBean"></p>
+<p>这里就会查看 <code>BeanDefinition</code> 的 <code>methodOverrides</code> 是否有数据了，这里就会找到之前的 <code>LookupOverrides</code> 了, 找到之后就会通过 CGLIB 进行 Bean 的实例化了</p>
+<p><img src="/assets/picture/instantiation_strategy_instatiate_bean.png" alt="InstantiationStrategy#instantiate" title="InstantiationStrategy#instantiate"><br><img src="/assets/picture/CglibSubclassingInstantiationStrategy.instantiateWithMethodInjection.png" alt="CglibSubclassingInstantiationStrategy#instantiateWithMethodInjection" title="CglibSubclassingInstantiationStrategy#instantiateWithMethodInjection"></p>
+<p>通过 CGLIB 的 <code>Enhancer</code> 创建 Class，再通过反射进行实例化，最后设置 Callback，其中就有 <code>LookupOverrideMethodInterceptor</code></p>
+<p><img src="/assets/picture/CglibSubclassCreator.instantiate.png" alt="CglibSubclassCreator#instantiate" title="CglibSubclassCreator#instantiate"><br><img src="/assets/picture/CglibSubclassCreator.createEnhancedSubclass.png" alt="CglibSubclassCreator#createEnhancedSubclass" title="CglibSubclassCreator#createEnhancedSubclass"><br><img src="/assets/picture/CglibSubclassCreator.CALLBACK_TYPES.png" alt="CglibSubclassCreator#CALLBACK_TYPES" title="CglibSubclassCreator#CALLBACK_TYPES"></p>
+<p>而 <code>LookupOverrideMethodInterceptor</code> 是 CGLIB 中 <code>MethodInterceptor</code> 的实现，实现了对方法的代理；它的具体逻辑是代理 <code>@Lookup</code> 修饰的方法，先看 <code>@Lookup</code> 注解是否有 <code>value</code> 属性，如果有则将 <code>value</code> 作为 Bean 名称去 BeanFactory 中查找或创建 Bean 实例，如果没有则根据方法的返回值的 Class 去 BeanFactory 中查找或创建 Bean 实例。</p>
+<p>简单来说就是忽略了 <code>@Lookup</code> 修饰的方法的具体实现，只按照方法的返回值或者 <code>@Lookup</code> 注解的 <code>value</code> 属性去容器中查找 Bean，这个时候查询的 Bean 的 Scope 可以是任何类型，也包括 <code>prototype</code></p>
+<p><img src="/assets/picture/LookupOverrideMethodInterceptor.png" alt="LookupOverrideMethodInterceptor" title="LookupOverrideMethodInterceptor"></p>
+<h2 id="继承-ApplicationContextAware-每次去获取bean"><a href="#继承-ApplicationContextAware-每次去获取bean" class="headerlink" title="继承 ApplicationContextAware 每次去获取bean"></a>继承 ApplicationContextAware 每次去获取bean</h2><p>这里不推荐使用 <code>ApplicationContextAware</code> 所以不给出方法了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/02/12/%E6%8A%80%E6%9C%AF/maven/Maven%20scope%20import/" rel="prev" title="Maven 继承方式： scope import">
+      <i class="fa fa-chevron-left"></i> Maven 继承方式： scope import
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/05/22/%E6%8A%80%E6%9C%AF/mysql/2017-05-22-mysql%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/" rel="next" title="mysql常用指令">
+      mysql常用指令 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E7%9A%84%E5%88%9B%E5%BB%BA-prototype-%E7%B1%BB%E5%9E%8B%E7%9A%84-Spring-bean"><span class="nav-number">2.</span> <span class="nav-text">如何正确的创建 prototype 类型的 Spring bean</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E6%B3%A8%E5%85%A5"><span class="nav-number">2.1.</span> <span class="nav-text">使用方法注入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Lookup-%E6%B3%A8%E8%A7%A3%E6%98%AF%E5%A6%82%E4%BD%95%E5%85%A5%E6%B3%A8%E5%85%A5-prototype-%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%BE%9D%E8%B5%96%E7%9A%84%EF%BC%9F"><span class="nav-number">2.1.1.</span> <span class="nav-text">@Lookup 注解是如何入注入 prototype 类型的依赖的？</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Bean-%E7%9A%84%E5%AE%9E%E4%BE%8B%E5%8C%96"><span class="nav-number">2.1.1.1.</span> <span class="nav-text">Bean 的实例化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%A7%E6%89%BF-ApplicationContextAware-%E6%AF%8F%E6%AC%A1%E5%8E%BB%E8%8E%B7%E5%8F%96bean"><span class="nav-number">2.2.</span> <span class="nav-text">继承 ApplicationContextAware 每次去获取bean</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

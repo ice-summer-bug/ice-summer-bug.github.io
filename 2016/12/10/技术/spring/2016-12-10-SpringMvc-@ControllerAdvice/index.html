@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Spring MVC 中的 @ControllerAdvice 注解到底有什么用？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringMVC 中的 @ControllerAdvice">
+<meta property="og:url" content="https://summerbuger.github.io/2016/12/10/%E6%8A%80%E6%9C%AF/spring/2016-12-10-SpringMvc-@ControllerAdvice/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="Spring MVC 中的 @ControllerAdvice 注解到底有什么用？">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/errHandler.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/exception_handler_init_with_controller_advice.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/find_exception_handler_from_controller_advice_cache.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/init_request_response_body_method_processo_with_response_body_advice.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/invoke_return_value_hanlder_after_invoke_exception_handler_method.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/return_value_handler_invoke_message_converter_with_response_body_advice.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/responseBodyDemo.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/init_controller_advice_cache_for_handler_adapter.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/fill_controller_advice_cache_for_handler_adapter.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/web_data_binder_factory_for_handler_adapter.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/handler_adapter_init_model.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/handler_adapter_invoke_model_attribute_method.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/handler_adapter_do_invoke_method_attribute_method.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/web_data_binder_for_resolve_argument.png">
+<meta property="article:published_time" content="2016-12-10T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.995Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="Spring">
+<meta property="article:tag" content="Spring MVC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/errHandler.png">
+
+<link rel="canonical" href="https://summerbuger.github.io/2016/12/10/%E6%8A%80%E6%9C%AF/spring/2016-12-10-SpringMvc-@ControllerAdvice/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SpringMVC 中的 @ControllerAdvice | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2016/12/10/%E6%8A%80%E6%9C%AF/spring/2016-12-10-SpringMvc-@ControllerAdvice/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringMVC 中的 @ControllerAdvice
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-12-10 21:00:00" itemprop="dateCreated datePublished" datetime="2016-12-10T21:00:00+08:00">2016-12-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Spring/" itemprop="url" rel="index"><span itemprop="name">Spring</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">Spring MVC 中的 @ControllerAdvice 注解到底有什么用？</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Spring-MVC-中的-ControllerAdvice"><a href="#Spring-MVC-中的-ControllerAdvice" class="headerlink" title="Spring MVC 中的 @ControllerAdvice"></a>Spring MVC 中的 @ControllerAdvice</h1><h2 id="ControllerAdvice-简介"><a href="#ControllerAdvice-简介" class="headerlink" title="@ControllerAdvice 简介"></a><code>@ControllerAdvice</code> 简介</h2><p><code>Spring MVC</code> 中常用的注解网上有很多介绍，<code>@ControllerAdvice</code> 这个注解相对来说少见一点；从名称上就能看出， <code>@ControllerAdvice</code> 是用来增强 <code>@Controller</code> 的</p>
+<pre><code>            使用 `@ControllerAdvice` 注解可以增强控制器 Controller，带有 `@ControllerAdvice` 注解的类，可以包含 @ExceptionHandler、@InitBinder, 和 `@ModelAttribute` 注解的方法，
+            并且这些注解的方法会通过控制器层次应用到所有 `@RequestMapping` 方法中，而不用一一在控制器内部声明。</code></pre>
+<h2 id="使用-ControllerAdvice-进行异常处理"><a href="#使用-ControllerAdvice-进行异常处理" class="headerlink" title="使用 @ControllerAdvice 进行异常处理"></a>使用 <code>@ControllerAdvice</code> 进行异常处理</h2><p>看到上面这段话，大家有没有一种兴奋感？<br>在没有 <code>@ControllerAdvice</code> 之前， 我们是怎么使用 <code>@ExceptionHandler</code> 的呢？ 很简单，我们给 <code>Controller</code> 定义父类，在父类中创建一个方法，被 <code>@ExceptionHandler</code> 修饰的方法，</p>
+<p>而有了 @ControllerAdvice 之后，我们并不需要定义什么父类，只要用 <code>@ControllerAdvice</code> 修饰一个类，它就能成为全局异常处理器了！</p>
+<pre><code>            Talk is cheap, show me the code!</code></pre>
+<p>先来一个 Controller:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/spring/demo&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/hello&quot;)</span></span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;test exceptions&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再来一个 ControllerAdvice, 直接返回一个 json 格式的异常信息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ControllerAdvice</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BaseControllerAdvice</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ExceptionHandler</span></span><br><span class="line">    <span class="meta">@ResponseBody</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">handlerException</span><span class="params">(Exception e, HttpServletRequest request)</span> </span>&#123;</span><br><span class="line">        logger.info(<span class="string">&quot;exception: &#123;&#125;&quot;</span>, e);</span><br><span class="line">        <span class="keyword">return</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再来贴一下 spring 配置信息:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">beans</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.springframework.org/schema/beans&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span> <span class="attr">xmlns:mvc</span>=<span class="string">&quot;http://www.springframework.org/schema/mvc&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xmlns:context</span>=<span class="string">&quot;http://www.springframework.org/schema/context&quot;</span></span></span><br><span class="line"><span class="tag">       <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://www.springframework.org/schema/beans</span></span></span><br><span class="line"><span class="tag"><span class="string">       http://www.springframework.org/schema/beans/spring-beans.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">       http://www.springframework.org/schema/mvc</span></span></span><br><span class="line"><span class="tag"><span class="string">       http://www.springframework.org/schema/mvc/spring-mvc.xsd</span></span></span><br><span class="line"><span class="tag"><span class="string">       http://www.springframework.org/schema/context</span></span></span><br><span class="line"><span class="tag"><span class="string">       http://www.springframework.org/schema/context/spring-context.xsd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">mvc:annotation-driven</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">context:component-scan</span> <span class="attr">base-package</span>=<span class="string">&quot;com.springdemo.liam&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">&quot;annotation&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;org.springframework.stereotype.Controller&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">context:include-filter</span> <span class="attr">type</span>=<span class="string">&quot;annotation&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;org.springframework.web.bind.annotation.ControllerAdvice&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">context:exclude-filter</span> <span class="attr">type</span>=<span class="string">&quot;annotation&quot;</span> <span class="attr">expression</span>=<span class="string">&quot;org.springframework.stereotype.Service&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">context:component-scan</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">beans</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>看看运行结果，很不错，我们实现了全剧异常处理<br><img src="/assets/picture/errHandler.png" alt="图片"></p>
+<p>到这里大家会比较疑惑，为什么 ControllerAdvice 可以被自动扫描呢？</p>
+<p>先来看看源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Target(ElementType.TYPE)</span></span><br><span class="line"><span class="meta">@Retention(RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@Documented</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> ControllerAdvice &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@AliasFor(&quot;basePackages&quot;)</span></span><br><span class="line">    String[] value() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@AliasFor(&quot;value&quot;)</span></span><br><span class="line">    String[] basePackages() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    Class&lt;?&gt;[] basePackageClasses() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    Class&lt;?&gt;[] assignableTypes() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    Class&lt;? extends Annotation&gt;[] annotations() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看到 <code>@ControllerAdvice</code> 是一个 <code>@Component</code>, 它当然能被扫描注册到上下文中</p>
+<h2 id="ControllerAdvice-异常处理实现原理"><a href="#ControllerAdvice-异常处理实现原理" class="headerlink" title="@ControllerAdvice 异常处理实现原理"></a><code>@ControllerAdvice</code> 异常处理实现原理</h2><p>Spring MVC 中异常处理器中最常用的就是  <code>ExceptionHandlerExceptionResovler</code>，它维护了一个 @ControllerAdvice 注解修饰的类 @ExceptionHandler 修饰的异常处理方法的缓存</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ExceptionHandlerExceptionResolver</span> <span class="keyword">extends</span> <span class="title">AbstractHandlerMethodExceptionResolver</span></span></span><br><span class="line"><span class="class">        <span class="keyword">implements</span> <span class="title">ApplicationContextAware</span>, <span class="title">InitializingBean</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// @ControllerAdvice 对应 ExceptionHandlerMethodResolver 的 Map 缓存</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;ControllerAdviceBean, ExceptionHandlerMethodResolver&gt; exceptionHandlerAdviceCache =</span><br><span class="line">            <span class="keyword">new</span> LinkedHashMap&lt;&gt;();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 缓存新建默认 HandlerMethodReturnValueHandler 时用到的 ResponseBodyAdvice 列表</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Object&gt; responseBodyAdvice = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>exceptionHandlerAdviceCache</code> 在 <code>ExceptionHandlerExceptionResovler</code> 初始化的时候被赋值</p>
+<p><img src="/assets/picture/exception_handler_init_with_controller_advice.png" alt="初始化 ExceptionHandlerExceptionResovler 中的 exceptionHandlerAdviceCache" title="初始化 ExceptionHandlerExceptionResovler 中的 exceptionHandlerAdviceCache"></p>
+<p>在从处理器 Controller 中获取不到 @ExceptionHandler 修饰的异常处理方法后，会从 <code>exceptionHandlerAdviceCache</code> 中获取 <code>ExceptionHandlerExceptionResovler</code> 再获取到异常处理方法</p>
+<p><img src="/assets/picture/find_exception_handler_from_controller_advice_cache.png" alt="从 @ControllerAdvice 缓存中获取 ExceptionHandler" title="从 @ControllerAdvice 缓存中获取 ExceptionHandler"></p>
+<p><code>ExceptionHandlerExceptionResovler</code> 还会对调用返回值处理器对返回值进行处理，而初始化时候赋值的 <code>responseBodyAdvice</code> 会被用来新建默认的 <code>HandlerMethodReturnValueHandler</code>，主要是 <code>RequestResponseBodyMethodProcessor</code></p>
+<p><img src="/assets/picture/init_request_response_body_method_processo_with_response_body_advice.png" alt="使用 responseBodyAdviceCache 创建 HandlerMethodReturnValueHandler" title="使用 responseBodyAdviceCache 创建 HandlerMethodReturnValueHandler"></p>
+<p><img src="/assets/picture/invoke_return_value_hanlder_after_invoke_exception_handler_method.png" alt="调用 HandlerMethodReturnValueHandler 处理返回值" title="调用 HandlerMethodReturnValueHandler 处理返回值"></p>
+<p>在 <code>RequestResponseBodyMethodProcessor</code> 中会调用 <code>ResponseBodyAdvice#beforeBodyWrite</code> 对返回结果进行插入处理</p>
+<p><img src="/assets/picture/return_value_handler_invoke_message_converter_with_response_body_advice.png" alt="调用 ResponseBodyAdvice" title="调用 ResponseBodyAdvice"></p>
+<p><code>ResponseBodyAdvice</code> 是 <code>Spring 4.2</code> 以来的新特性</p>
+<p><code>ResponseBodyAdvice</code> 的源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ResponseBodyAdvice</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Whether this component supports the given controller method return type</span></span><br><span class="line"><span class="comment">     * and the selected &#123;<span class="doctag">@code</span> HttpMessageConverter&#125; type.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> returnType the return type</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> converterType the selected converter type</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@code</span> true&#125; if &#123;<span class="doctag">@link</span> #beforeBodyWrite&#125; should be invoked, &#123;<span class="doctag">@code</span> false&#125; otherwise</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">supports</span><span class="params">(MethodParameter returnType, Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; converterType)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Invoked after an &#123;<span class="doctag">@code</span> HttpMessageConverter&#125; is selected and just before</span></span><br><span class="line"><span class="comment">     * its write method is invoked.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> body the body to be written</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> returnType the return type of the controller method</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> selectedContentType the content type selected through content negotiation</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> selectedConverterType the converter type selected to write to the response</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> request the current request</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> response the current response</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the body that was passed in or a modified, possibly new instance</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">T <span class="title">beforeBodyWrite</span><span class="params">(T body, MethodParameter returnType, MediaType selectedContentType,</span></span></span><br><span class="line"><span class="function"><span class="params">            Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,</span></span></span><br><span class="line"><span class="function"><span class="params">            ServerHttpRequest request, ServerHttpResponse response)</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面是使用 @ControllerAdvice 加 ResponseBodyAdvice 的使用效果 ———— 在 ResponseBodyAdvice 中改写返回结果<br>实际业务中可以进行统一返回值处理，例如国际化处理等等</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ControllerAdvice(annotations = RestController.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleResponseBodyAdvice</span> <span class="keyword">implements</span> <span class="title">ResponseBodyAdvice</span>&lt;<span class="title">Result</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 校验是否是需要的接入点</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> returnType</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> converterType</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">supports</span><span class="params">(MethodParameter returnType, Class converterType)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> returnType.getMethod().getReturnType().equals(Result.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 在往 outputStream 中写入返回结果之前，对返回结果进行处理</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Result <span class="title">beforeBodyWrite</span><span class="params">(Result body, MethodParameter returnType, MediaType selectedContentType,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  Class&lt;? extends HttpMessageConverter&lt;?&gt;&gt; selectedConverterType,</span></span></span><br><span class="line"><span class="function"><span class="params">                                  ServerHttpRequest request, ServerHttpResponse response)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> body.withRet(<span class="keyword">false</span>).withData(<span class="string">&quot;被 ResponseBodyAdvice 修改的结果&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleRestController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping(&quot;/test/rest&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Result&lt;String&gt; <span class="title">testRest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Result.success(<span class="keyword">true</span>, <span class="string">&quot;hello&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看看结果：</p>
+<p><img src="/assets/picture/responseBodyDemo.png" alt="图片"></p>
+<h2 id="ControllerAdvice-和-InitBinder、-ModelAttribute"><a href="#ControllerAdvice-和-InitBinder、-ModelAttribute" class="headerlink" title="@ControllerAdvice 和 @InitBinder、@ModelAttribute"></a>@ControllerAdvice 和 @InitBinder、@ModelAttribute</h2><p>在 Spring MVC 的组件中 <code>HandlerAdapter</code> 负责为请求匹配处理器、调用参数解析器解析参数、通过反射调用处理器、调用返回值处理器处理返回值；<br>而 <code>RequestMappingHandleAdapter</code> 是默认的第一个被调用的 <code>HanlderAdapter</code>, 它维护了 @ControllerAdvice 对应的 @InitBinder 的缓存以及 @ControllerAdvice 对应 @ModelAttribute 的缓存</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RequestMappingHandlerAdapter</span> <span class="keyword">extends</span> <span class="title">AbstractHandlerMethodAdapter</span></span></span><br><span class="line"><span class="class">        <span class="keyword">implements</span> <span class="title">BeanFactoryAware</span>, <span class="title">InitializingBean</span> </span>&#123;</span><br><span class="line">    <span class="comment">// @ControllerAdvice 修饰的 Bean 和其中 @InitBinder 修饰的方法的映射缓存</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;ControllerAdviceBean, Set&lt;Method&gt;&gt; initBinderAdviceCache = <span class="keyword">new</span> LinkedHashMap&lt;&gt;();</span><br><span class="line">    <span class="comment">// @ControllerAdvice 修饰的 Bean 和其中 @ModelAttribute 修饰的方法的映射缓存</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;ControllerAdviceBean, Set&lt;Method&gt;&gt; modelAttributeAdviceCache = <span class="keyword">new</span> LinkedHashMap&lt;&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>RequestMappingHandleAdapter</code> 在初始化的时候会填充上述两个缓存</p>
+<p><img src="/assets/picture/init_controller_advice_cache_for_handler_adapter.png" alt="初始化 @ControllerAdvice 缓存" title="初始化 @ControllerAdvice 缓存"></p>
+<ul>
+<li>首先查找到 @ControllerAdvice 修饰的 Bean</li>
+<li>从 @ControllerAdvice Bean 中查找 @InitBinder 修饰的方法，放入 initBinderAdviceCache 中</li>
+<li>从 @ControllerAdvice Bean 中查找 @ModelAttribute 修饰的方法，放入 modelAttributeAdviceCache 中</li>
+</ul>
+<p><img src="/assets/picture/fill_controller_advice_cache_for_handler_adapter.png" alt="查找 @InitBinder 和 @ModelAttribute放入缓存" title="查找 @InitBinder 和 @ModelAttribute放入缓存"></p>
+<p><code>RequestMappingHandleAdapter</code> 在解析参数、调动处理器之前会做一些前置操作</p>
+<ol>
+<li>查找处理器 Controller 中或者 @ControllerAdvice 中 @InitBinder 修饰的方法，构建 WebDataBinderFactory，用于创建 WebDataBinder，在实例化 WebDataBinder 后调用 @InitBinder 修饰的方法对 WebDataBinder 进行自定义设置，而这个 WebDataBinderFactory 会用于调用 @ModelAttribute 修饰的方法，以及调用处理方法的过程中</li>
+</ol>
+<p><img src="/assets/picture/web_data_binder_factory_for_handler_adapter.png" alt="创建 WebDataBinderFactory" title="创建 WebDataBinderFactory"></p>
+<ol start="2">
+<li>调用 <code>@ControllerAttribute</code> 修饰的方法，将返回结果放入 Model 中；</li>
+</ol>
+<p><img src="/assets/picture/handler_adapter_init_model.png" alt="ModelFactory#initModel" title="ModelFactory#initModel"><br><img src="/assets/picture/handler_adapter_invoke_model_attribute_method.png" alt="ModelFactory#invokeModelAttributeMethods" title="ModelFactory#invokeModelAttributeMethods"><br><img src="/assets/picture/handler_adapter_do_invoke_method_attribute_method.png" alt="modelMethod.invokeForRequest" title="modelMethod.invokeForRequest"></p>
+<ol start="3">
+<li>调用 <code>@ControllerAttribute</code> 修饰的方法时，在 HandlerMethodArgumentResolver 中调用 WebDataBinderFactory 中 @InitBinder 修饰的方法创建 WebDataBiner，进行参数的校验及校验结果处理；在 @InitBinder 修饰的方法中可以对 WebDataBinder 的 Bean 进行自定义的设置</li>
+</ol>
+<p><img src="/assets/picture/web_data_binder_for_resolve_argument.png" alt="HandlerMethodArgumentResolver 使用 WebDataBinder" title="HandlerMethodArgumentResolver 使用 WebDataBinder"></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Spring/" rel="tag"># Spring</a>
+              <a href="/tags/Spring-MVC/" rel="tag"># Spring MVC</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/12/01/%E6%8A%80%E6%9C%AF/spring/2016-12-01-SpringMVC%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0-mvc%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B/" rel="prev" title="SpringMVC源码学习 —— MVC 配置加载过程">
+      <i class="fa fa-chevron-left"></i> SpringMVC源码学习 —— MVC 配置加载过程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/01/01/%E6%8A%80%E6%9C%AF/protobuf/2017-01-01-protoc%E6%8C%87%E4%BB%A4%E4%BB%8B%E7%BB%8D/" rel="next" title="protoc 指令介绍">
+      protoc 指令介绍 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spring-MVC-%E4%B8%AD%E7%9A%84-ControllerAdvice"><span class="nav-number">1.</span> <span class="nav-text">Spring MVC 中的 @ControllerAdvice</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ControllerAdvice-%E7%AE%80%E4%BB%8B"><span class="nav-number">1.1.</span> <span class="nav-text">@ControllerAdvice 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-ControllerAdvice-%E8%BF%9B%E8%A1%8C%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">使用 @ControllerAdvice 进行异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ControllerAdvice-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="nav-number">1.3.</span> <span class="nav-text">@ControllerAdvice 异常处理实现原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ControllerAdvice-%E5%92%8C-InitBinder%E3%80%81-ModelAttribute"><span class="nav-number">1.4.</span> <span class="nav-text">@ControllerAdvice 和 @InitBinder、@ModelAttribute</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

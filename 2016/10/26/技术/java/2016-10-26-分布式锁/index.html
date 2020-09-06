@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="使用mysql、redis、zookeeper 实现分布式锁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="几种分布式锁的实现方式">
+<meta property="og:url" content="https://summerbuger.github.io/2016/10/26/%E6%8A%80%E6%9C%AF/java/2016-10-26-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="使用mysql、redis、zookeeper 实现分布式锁">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/zk_simple_lock.png">
+<meta property="article:published_time" content="2016-10-26T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.989Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="分布式锁">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/zk_simple_lock.png">
+
+<link rel="canonical" href="https://summerbuger.github.io/2016/10/26/%E6%8A%80%E6%9C%AF/java/2016-10-26-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>几种分布式锁的实现方式 | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2016/10/26/%E6%8A%80%E6%9C%AF/java/2016-10-26-%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          几种分布式锁的实现方式
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-10-26 21:00:00" itemprop="dateCreated datePublished" datetime="2016-10-26T21:00:00+08:00">2016-10-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" itemprop="url" rel="index"><span itemprop="name">分布式锁</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">使用mysql、redis、zookeeper 实现分布式锁</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>分布式是现在大多数程序必要的运行环境：单机服务如果服务器宕机了，向外提供的服务马上崩溃，整个系统陷入瘫痪；而如果存在多个服务器向外提供服务，<br>只要还存在提供服务的服务器，系统就能正常运行</p>
+<p>分布式系统向外提供服务时，很多情况下都会出现多个服务器共享某一资源的情况，存在自愿竞争；</p>
+<p>如：<br>商品系统提供了rpc 接口，功能是创建商品信息，这个rpc 接口的提供服务器有 A,B,C；<br>这个创建商品信息的接口，在创建新的商品之前，会检测现在是否已经存在该商品，如果存在则返回已存在该商品，否则将新建商品<br>rpc接口的消费者是E， 假设 E 第一次调用的时候调用的是A，在短时间内再次请求，创建相同的商品，这时候A 服务器还没处理完,假设请求分发到了B<br>这时候 A 服务器还没有将商品信息持久化， B 服务器已经运行到了检查是否已经存在该商品， B 服务器没有查询到商品已存在，又创建了一个商品，此时商品的唯一性时效！</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Result <span class="title">createProduct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="comment">// 在持久化商品信息之前需要进行的操作</span></span><br><span class="line">  ......</span><br><span class="line">  <span class="comment">// 检测商品信息是否存在</span></span><br><span class="line">  <span class="keyword">if</span> (商品信息已存在) &#123;</span><br><span class="line">    <span class="keyword">return</span> Result.fail().withErrMsg(<span class="string">&quot;该商品已存在！&quot;</span>);</span><br><span class="line">  &#125;  <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 保存商品信息</span></span><br><span class="line">    saveProductInfo();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// ...... 商品保存后的逻辑操作</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>面对上述问题，在单机服务器上，我们很容易想到给 <code>createProduct</code> 加锁，使该方法实现线程安全； 将这个思路扩展到分布式系统，我们能否提供一个适用于分布式系统的锁？<br>要实现分布式锁，我们需要借助工具</p>
+<ol>
+<li>数据库</li>
+<li>redis</li>
+<li>zookeeper</li>
+</ol>
+<h3 id="1-依赖数据库实现分布式锁"><a href="#1-依赖数据库实现分布式锁" class="headerlink" title="1. 依赖数据库实现分布式锁"></a>1. 依赖数据库实现分布式锁</h3><p>各种版本的数据库都实现了锁，这里以 <code>mysql</code> 的 <code>InnoDB</code> 存储引擎为例；</p>
+<p><code>InnoDB</code> 的特性是：支持事务、支持行级锁、支持外键；</p>
+<p><code>InnoDB</code> 提供了两种类型的行级锁：</p>
+<p>1.<code>共享锁(S)</code>: 允许一个事务去读一行数据，阻止其他事务获取相同数据集的排他写锁<br>2.<code>排他锁(X)</code>: 允许获得排他锁的事务修改一行数据，阻止其他事务获取相同数据集的共享读锁和排他写锁</p>
+<p>对于 <code>DELETE</code>、<code>UPDATE</code>、<code>INSERT</code>语句，<code>InnoDB</code>会自动给涉及到的数据集加上排他锁；<br>对于普通的 <code>SELECT</code> 语句，<code>InnoDB</code> 不会加上任务锁；<br>而 <code>事务</code> 可以通过以下语句显式的给涉及到的数据集加上共享锁或者排他锁：</p>
+<ol>
+<li>显式添加共享锁</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> table_name <span class="keyword">WHERE</span> ... <span class="keyword">LOCK</span> <span class="keyword">IN</span> <span class="keyword">SHARE</span> <span class="keyword">MODE</span>;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>显式添加排他锁</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> table_name <span class="keyword">WHERE</span> ... <span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>FOR UPDATE</code> 添加排他锁，后一个想要获取锁的事务，会等待前一个事务的完成之后才能获取排他锁</p>
+<p>回到正题，我们上面所说的分布式锁，需要具备排他性；<code>事务</code> 通过 <code>FOR UPDATE</code> 添加排他锁正好满足我们的需求</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def <span class="keyword">lock</span>:</span><br><span class="line">  <span class="keyword">set</span> autocommit <span class="number">0</span>; // 取消事务的自动提交特性</span><br><span class="line">  <span class="keyword">select</span> * <span class="keyword">from</span> lock_table <span class="keyword">where</span> lock_key = ? <span class="keyword">for</span> <span class="keyword">update</span>;</span><br><span class="line"></span><br><span class="line">def <span class="keyword">unlock</span>:</span><br><span class="line">  <span class="keyword">set</span> autocommit <span class="number">1</span>;  // 提交事务，解除行级锁</span><br></pre></td></tr></table></figure>
+
+<p>这里使用的 <code>事务</code> + <code>FOR UPDATE</code> 添加排他锁</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.liam.distribute.lock.db;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.DistributeLock;</span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.LockException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.sql.*;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by chaochun.chen on 16-10-27.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ForUpdateSimpleLock</span> <span class="keyword">implements</span> <span class="title">DistributeLock</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ThreadLocal&lt;Connection&gt; localConnection = <span class="keyword">new</span> ThreadLocal&lt;Connection&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String FOR_UPDATE_SQL = <span class="string">&quot;select * from lock_table where lock_key = ? for update&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        Connection connection = localConnection.get();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            connection.setAutoCommit(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">            PreparedStatement statement = connection.prepareStatement(FOR_UPDATE_SQL);</span><br><span class="line">            statement.setString(<span class="number">1</span>, lockKey);</span><br><span class="line">            ResultSet resultSet = statement.executeQuery();</span><br><span class="line">            <span class="keyword">if</span> (resultSet.next()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">            <span class="comment">// 忽略异常，默认为尝试加锁失败！</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        Connection connection = localConnection.get();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            connection.setAutoCommit(<span class="keyword">false</span>);</span><br><span class="line">            <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">while</span> (count &lt; <span class="number">3</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    PreparedStatement statement = connection.prepareStatement(FOR_UPDATE_SQL);</span><br><span class="line">                    statement.setString(<span class="number">1</span>, lockKey);</span><br><span class="line">                    ResultSet resultSet = statement.executeQuery();</span><br><span class="line">                    <span class="keyword">if</span> (resultSet.next()) &#123;</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                    <span class="comment">// 此时如果抛出异常则重试！</span></span><br><span class="line">                &#125;</span><br><span class="line">                TimeUnit.SECONDS.sleep(<span class="number">1</span>);</span><br><span class="line">                count++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">            <span class="comment">// 忽略异常，默认为尝试加锁失败！</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unLock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        Connection connection = localConnection.get();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            connection.setAutoCommit(<span class="keyword">true</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setConnection</span><span class="params">(Connection connection)</span> </span>&#123;</span><br><span class="line">        localConnection.set(connection);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这种实现分布式锁的方法存在一些问题：</p>
+<ol>
+<li>性能不是很高</li>
+<li>这里加锁解锁依赖sql，必须面对sql超时问题，如果底层 jdbc 和 数据库之前的socket 超时了，此时connection 基本不可用，需要关闭；<br>因此，在使用 <code>Connection</code> 的时候，推荐的使用方式是，将  <code>Connection</code> 的生命周期控制在一个方法内；</li>
+<li>如果调用分布式锁的消费者宕机了，没有人去解锁，其他消费者将无法获取锁</li>
+<li>没有可重入性</li>
+</ol>
+<p>除了上面说的 依赖 <code>事务</code> 通过 <code>FOR UPDATE</code> 实现分布式锁； 我们还能通过 <code>唯一索引</code> 实现分布式锁</p>
+<p>先看看建表语句：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> uniq_lock_table (</span><br><span class="line">    <span class="string">`id`</span> <span class="built_in">INT</span> (<span class="number">10</span>) <span class="keyword">UNSIGNED</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;自增主键&#x27;</span>,</span><br><span class="line">  <span class="string">`lock_key`</span> <span class="built_in">VARCHAR</span> (<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;获取锁的key值&#x27;</span>,</span><br><span class="line">  <span class="string">`expire_time`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;1970-01-01 00:00:00&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;失效时间&#x27;</span>,</span><br><span class="line">  <span class="string">`create_time`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;1970-01-01 00:00:00&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">    <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uniq_lock_key`</span>(<span class="string">`lock_key`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span> = <span class="keyword">INNODB</span> <span class="keyword">CHARSET</span> = <span class="string">&#x27;utf8mb4&#x27;</span> <span class="keyword">COMMENT</span> = <span class="string">&#x27;使用唯一索引实现分布式锁的表&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>简单定义一个dao 层接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.liam.distribute.lock.mapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by chaochun.chen on 16-10-28.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UniqLockTableMapper</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">insert</span><span class="params">(String lockKey, Date createTime, Date expireTime)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">del</span><span class="params">(String lockKey)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">deleteExpired</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>分布式锁简单定义如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def <span class="keyword">lock</span>:</span><br><span class="line">    exec <span class="keyword">sql</span>: <span class="keyword">insert</span> <span class="keyword">into</span> uniq_lock_table(lock_key, create_time, expire_time) <span class="keyword">values</span>(?, ?, ?);</span><br><span class="line">    if result == 1:</span><br><span class="line">      return ture;</span><br><span class="line">    else :</span><br><span class="line">      return false;</span><br><span class="line"></span><br><span class="line">def <span class="keyword">unlock</span>:</span><br><span class="line">    <span class="keyword">delete</span> <span class="keyword">from</span> uniq_lock_table <span class="keyword">where</span> lock_key = ?;</span><br></pre></td></tr></table></figure>
+
+<p>用java 实现的代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.liam.distribute.lock.db;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.DistributeLock;</span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.mapper.UniqLockTableMapper;</span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.mapper.UniqLockTableMapperImpl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.OperationNotSupportedException;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by chaochun.chen on 16-10-27.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UniqIndexLock</span> <span class="keyword">implements</span> <span class="title">DistributeLock</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        UniqLockTableMapper uniqLockTableMapper = UniqLockTableMapperImpl.newInstance();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">boolean</span> insert = uniqLockTableMapper.insert(lockKey, <span class="keyword">new</span> Date(), <span class="keyword">new</span> Date());</span><br><span class="line">            <span class="keyword">if</span> (insert) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// 忽略此异常，视为加锁失败！</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        UniqLockTableMapper uniqLockTableMapper = UniqLockTableMapperImpl.newInstance();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="keyword">boolean</span> insert = uniqLockTableMapper.insert(lockKey, <span class="keyword">new</span> Date(), <span class="keyword">new</span> Date());</span><br><span class="line">                    <span class="keyword">if</span> (insert) &#123;</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                    <span class="comment">// 忽略此异常，视为加锁失败！</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">(String lockKey, TimeUnit timeUnit, <span class="keyword">long</span> expireTime)</span> <span class="keyword">throws</span> OperationNotSupportedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lock</span><span class="params">(String lockKey, TimeUnit timeUnit, <span class="keyword">long</span> expireTime)</span> <span class="keyword">throws</span> OperationNotSupportedException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unLock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        UniqLockTableMapper uniqLockTableMapper = UniqLockTableMapperImpl.newInstance();</span><br><span class="line">        uniqLockTableMapper.del(lockKey);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这种方法的缺点很明显：</p>
+<ol>
+<li>分布式锁不具备可重入性</li>
+<li>如果某一消费者在获取锁之后宕机了，其他消费者无法获取锁</li>
+</ol>
+<p>为了解决 上面反复提到的 失效的锁的问题，我们在获取锁的时候新增时效时间！</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">def <span class="keyword">lock</span>:</span><br><span class="line">    exec clear_expire_time;</span><br><span class="line">    exec sql: <span class="keyword">insert</span> <span class="keyword">into</span> uniq_lock_table(lock_key, create_time, expire_time) <span class="keyword">values</span>(?, ?, ?);</span><br><span class="line">    if result == 1:</span><br><span class="line">      return ture;</span><br><span class="line">    else :</span><br><span class="line">      return false;</span><br><span class="line"></span><br><span class="line">def clear_expire_time:</span><br><span class="line">    <span class="keyword">delete</span> <span class="keyword">from</span> uniq_lock_table <span class="keyword">where</span> <span class="keyword">now</span>() &gt; expire_time;</span><br><span class="line"></span><br><span class="line">def <span class="keyword">unlock</span>:</span><br><span class="line">    <span class="keyword">delete</span> <span class="keyword">from</span> uniq_lock_table <span class="keyword">where</span> lock_key = ?;</span><br></pre></td></tr></table></figure>
+
+<p>java 实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.liam.distribute.lock.db;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.google.common.base.Function;</span><br><span class="line"><span class="keyword">import</span> com.google.common.collect.FluentIterable;</span><br><span class="line"><span class="keyword">import</span> com.google.common.collect.ImmutableList;</span><br><span class="line"><span class="keyword">import</span> com.google.common.collect.Iterables;</span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.DistributeLock;</span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.mapper.UniqLockTableMapper;</span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.mapper.UniqLockTableMapperImpl;</span><br><span class="line"><span class="keyword">import</span> com.liam.distribute.lock.model.UniqLockTable;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.naming.OperationNotSupportedException;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Created by chaochun.chen on 16-10-28.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UniqIndexTimeLock</span> <span class="keyword">implements</span> <span class="title">DistributeLock</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> DEFAULT_EXPIRE_TIMES = <span class="number">2</span> * <span class="number">1000</span>; <span class="comment">// 默认锁时效时间是两秒！</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> tryLock(lockKey, TimeUnit.MILLISECONDS, DEFAULT_EXPIRE_TIMES);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (OperationNotSupportedException e) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> lock(lockKey, TimeUnit.MILLISECONDS, DEFAULT_EXPIRE_TIMES);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (OperationNotSupportedException e) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">tryLock</span><span class="params">(String lockKey, TimeUnit timeUnit, <span class="keyword">long</span> expireTime)</span> <span class="keyword">throws</span> OperationNotSupportedException </span>&#123;</span><br><span class="line">        UniqLockTableMapper uniqLockTableMapper = UniqLockTableMapperImpl.newInstance();</span><br><span class="line">        <span class="keyword">long</span> expireMillis = timeUnit.toMillis(expireTime);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clearExpiredLock();</span><br><span class="line">            <span class="keyword">long</span> cur = System.currentTimeMillis();</span><br><span class="line">            Date now = <span class="keyword">new</span> Date(cur);</span><br><span class="line">            Date expired = <span class="keyword">new</span> Date(cur + expireMillis);</span><br><span class="line">            <span class="keyword">boolean</span> insert = uniqLockTableMapper.insert(lockKey, now, expired);</span><br><span class="line">            <span class="keyword">if</span> (insert) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// 忽略此异常，视为加锁失败！</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">lock</span><span class="params">(String lockKey, TimeUnit timeUnit, <span class="keyword">long</span> expireTime)</span> <span class="keyword">throws</span> OperationNotSupportedException </span>&#123;</span><br><span class="line">        UniqLockTableMapper uniqLockTableMapper = UniqLockTableMapperImpl.newInstance();</span><br><span class="line">        <span class="keyword">long</span> expireMillis = timeUnit.toMillis(expireTime);</span><br><span class="line">        <span class="keyword">long</span> currentTimeMillis = System.currentTimeMillis();</span><br><span class="line">        Date now = <span class="keyword">new</span> Date(currentTimeMillis);</span><br><span class="line">        Date expired = <span class="keyword">new</span> Date(currentTimeMillis + expireMillis);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            clearExpiredLock();</span><br><span class="line">            <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="keyword">boolean</span> insert = uniqLockTableMapper.insert(lockKey, now, expired);</span><br><span class="line">                    <span class="keyword">if</span> (insert) &#123;</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                    <span class="comment">// 忽略此异常，视为加锁失败！</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unLock</span><span class="params">(String lockKey)</span> </span>&#123;</span><br><span class="line">        UniqLockTableMapper uniqLockTableMapper = UniqLockTableMapperImpl.newInstance();</span><br><span class="line">        uniqLockTableMapper.del(lockKey);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">clearExpiredLock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        UniqLockTableMapper uniqLockTableMapper = UniqLockTableMapperImpl.newInstance();</span><br><span class="line">        uniqLockTableMapper.deleteExpired();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这些方法都没能实现分布式锁的可重入性，这里需要新增一个字段，标明分布式锁是谁加的, 再来看看新增分布式锁调用方标识之后的分布式锁定义</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">def <span class="keyword">lock</span>:</span><br><span class="line">  clear_expire_time;</span><br><span class="line">  exec sql: <span class="keyword">insert</span> <span class="keyword">into</span> uniq_lock_table(lock_key, create_time, expire_time, biz_uniq_code) <span class="keyword">values</span>(?, ?, ?, ?);</span><br><span class="line">  if result == 1 :</span><br><span class="line">    return true;</span><br><span class="line">  else :</span><br><span class="line">    exec sql : <span class="keyword">select</span> * <span class="keyword">from</span> uniq_lock_table <span class="keyword">where</span> lock_key = ? <span class="keyword">and</span> biz_uniq_code = ?;</span><br><span class="line">    if query_result &gt; 0 :</span><br><span class="line">      return true;</span><br><span class="line">    else :</span><br><span class="line">      return false;</span><br></pre></td></tr></table></figure>
+
+<p>在使用上面这种方式实现可重入性的时候，需要将表中的唯一索引修改一下</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">add</span> <span class="keyword">UNIQUE</span> <span class="keyword">INDEX</span> <span class="string">`uniq_lock_key_biz_uniq_code`</span>(<span class="string">`lock_key`</span>, <span class="string">`biz_uniq_code`</span>);</span><br></pre></td></tr></table></figure>
+
+<h5 id="注意：-上面说的这些依赖数据库实现分布式锁，都要避免单数据库示例的问题，如果只有一个数据库示例，而数据库宕机了，分布式锁将不能提供服务；因此，分布式锁依赖的数据库必须配置多数据库实例，利用数据库的主从复制逻辑，保证数据同步！"><a href="#注意：-上面说的这些依赖数据库实现分布式锁，都要避免单数据库示例的问题，如果只有一个数据库示例，而数据库宕机了，分布式锁将不能提供服务；因此，分布式锁依赖的数据库必须配置多数据库实例，利用数据库的主从复制逻辑，保证数据同步！" class="headerlink" title="注意： 上面说的这些依赖数据库实现分布式锁，都要避免单数据库示例的问题，如果只有一个数据库示例，而数据库宕机了，分布式锁将不能提供服务；因此，分布式锁依赖的数据库必须配置多数据库实例，利用数据库的主从复制逻辑，保证数据同步！"></a>注意： 上面说的这些依赖数据库实现分布式锁，都要避免单数据库示例的问题，如果只有一个数据库示例，而数据库宕机了，分布式锁将不能提供服务；因此，分布式锁依赖的数据库必须配置多数据库实例，利用数据库的主从复制逻辑，保证数据同步！</h5><h3 id="2-依赖redis实现分布式锁"><a href="#2-依赖redis实现分布式锁" class="headerlink" title="2. 依赖redis实现分布式锁"></a>2. 依赖redis实现分布式锁</h3><p><code>redis</code> 作为内存数据存储系统，相比数据库具有更好的高可用性<br>先来看看一个 <code>redis</code> 命令, <code>setnx</code></p>
+<pre><code>    \&gt; help setnx
+    SETNX key value
+
+    TIME COMPLEXITY: O(1)
+
+
+
+    RETURN VALUE: Integer reply, specifically:
+
+    1 if the key was set
+    0 if the key was not set</code></pre>
+<p>从帮助信息能看明白， <code>setnx</code> 功能和 <code>set</code>指令类似， 不同在于 <code>setnx</code> 只有插入的key 不存在的时候才能插入成功，成功之后返回 1， 失败返回 0<br>我们依赖 <code>setnx</code> 实现分布式锁，定义如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def lock:</span><br><span class="line">  exec cmd: setnx lock_key lock_value;</span><br><span class="line">  if result == 1 :</span><br><span class="line">    return true;</span><br><span class="line">  else result = 0 :</span><br><span class="line">    return false;</span><br><span class="line"></span><br><span class="line">def unlock:</span><br><span class="line">  del lock_key;</span><br></pre></td></tr></table></figure>
+
+<p>上面的定义存在的问题有:</p>
+<ol>
+<li>调用分布式锁的消费者如果在获取锁之后宕机了，这个失效锁将导致其他消费者无法获取锁</li>
+<li>分布式锁不具备可重入性</li>
+</ol>
+<p>为了提供更好用的分布式锁，我们必须给分布式锁加上时效性<br>下面来看看 <code>redis</code> 的 <code>set</code> 指令</p>
+<pre><code>    &gt; help set
+    SET key value
+
+    TIME COMPLEXITY: O(1)
+
+
+
+    Options
+
+    EX seconds -- Set the specified expire time, in seconds.
+    PX milliseconds -- Set the specified expire time, in milliseconds.
+    NX -- Only set the key if it does not already exist.
+    XX -- Only set the key if it already exist.
+    RETURN VALUE: Status code reply: OK if SET was executed correctly. Null multi-bulk reply: a Null Bulk Reply is returned if the SET operation was not performed becase the user specified the NX or XX option but the condition was not met.</code></pre>
+<p>从这个可以看出来，<code>set</code> 指令可以做到 <code>setnx</code> 指令的目的，如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set key value NX</span><br></pre></td></tr></table></figure>
+
+<p>再看看下面的指令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">set key value EX 10 NX; &#x2F;&#x2F;插入一个 k-v 数据，只有key不存在的时候才能插入成功，插入成功好，10s 内数据有效，10s 后数据失效将被删除</span><br><span class="line">set key value PX 100 NX; &#x2F;&#x2F;插入一个 k-v 数据，只有key不存在的时候才能插入成功，插入成功好，10 毫秒内数据有效，10 毫秒后数据失效将被删除</span><br></pre></td></tr></table></figure>
+
+<p>加入有效时间后，分布式锁不需要在每次加锁之前清除无效锁, 得到优化的分布式锁如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def <span class="keyword">lock</span>:</span><br><span class="line">  exec: <span class="keyword">set</span> lock_key lock_value PX expire_time NX; // 这里选择时效时间单位为毫秒，增加锁有效时间的精确性</span><br><span class="line">  if result == OK :</span><br><span class="line">    return true;</span><br><span class="line">  else :</span><br><span class="line">    return false;</span><br><span class="line"></span><br><span class="line">def <span class="keyword">unlock</span>:</span><br><span class="line">  del lock_key;</span><br></pre></td></tr></table></figure>
+
+<p>上面的分布式锁还是没有实现可重入性， 改进如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">def <span class="keyword">lock</span>:</span><br><span class="line">  exec: <span class="keyword">set</span> lock_key biz_uniq_code PX expire_time NX; // 插入的value 是 biz_uniq_code, 可以唯一表示加锁的调用方</span><br><span class="line">  if result == OK :</span><br><span class="line">    return true;</span><br><span class="line">  else :</span><br><span class="line">    exec: get lock_key</span><br><span class="line">    if value == biz_uniq_code :</span><br><span class="line">      return true;</span><br><span class="line">    else :</span><br><span class="line">      return false;</span><br></pre></td></tr></table></figure>
+
+<p>依赖 <code>redis</code> 实现 <code>分布式锁</code> 存在一个难以解决的问题，<code>redis</code> 不能保证数据的 <code>强一致性</code>， 因为；</p>
+<h6 id="redis-集群使用异步复制"><a href="#redis-集群使用异步复制" class="headerlink" title="redis 集群使用异步复制"></a>redis 集群使用异步复制</h6><p>如果在加锁的时候 <code>redis</code> 的 <code>master</code> 宕机了，异步复制到 <code>slave</code> 失败了，加锁就失败了！</p>
+<p>为了解决这个问题，<code>redis</code> 的作者提出了 <code>redLock</code></p>
+<h4 id="RedLock"><a href="#RedLock" class="headerlink" title="RedLock"></a>RedLock</h4><p>这里不对 <code>RedLock</code> 进行介绍，详情见 <code>并发编程网</code> 翻译<br><a target="_blank" rel="noopener" href="http://ifeve.com/redis-lock/">http://ifeve.com/redis-lock/</a></p>
+<h3 id="3-依赖zookeeper-实现分布式锁"><a href="#3-依赖zookeeper-实现分布式锁" class="headerlink" title="3. 依赖zookeeper 实现分布式锁"></a>3. 依赖zookeeper 实现分布式锁</h3><p><code>ZooKeeper</code> 能被用来实现分布式锁的原因取决于他的以下几个特性：</p>
+<ol>
+<li><code>ZooKeeper</code> 的视图结构和 unix 系统的文件系统类似，都是采用树结构，不同的是 <code>ZooKeeper</code> 的树结构上是新定义的 <code>数据节点</code> —— <code>ZNode</code>，<code>ZNode</code> 是 <code>ZooKeeper</code> 中数据的最小单元，可以保存数据，也可以挂靠子节点；</li>
+<li><code>ZooKeeper</code> 中的 <code>ZNode</code> 的类型分为 <code>持久节点</code>、 <code>临时节点</code>、 <code>顺序节点</code> 三大类型；通过组合使用可以生成四种节点：</li>
+</ol>
+<ol>
+<li><code>持久节点</code>：是指该数据节点被创建之后，就一直存在于 <code>ZooKeeper</code> 服务器上，直到有删除操作来主动清除这个节点；</li>
+<li><code>持久有序节点</code>：和 <code>持久节点</code> 的基本特性一致，不同的特性在于顺序性上；在 <code>ZooKeeper</code> 中父节点会为它的第一级节点维护一份顺序，用于记录下每个子节点创建的先后顺序。</li>
+<li><code>临时节点</code>：和 <code>持久节点</code> 不同的是，临时节点的生命周期和客户端的会话相关，如果客户端会话失效了，<code>临时节点</code> 将被自动清除。</li>
+<li><code>临时有序节点</code>：和 <code>临时节点</code> 的基本特性一致，不同的特性也在于顺序性上；</li>
+<li><code>ZooKeeper</code> 机制规定：同一个目录下只能有一个唯一的文件名。例如：我们在 <code>Zookeeper</code> 目录一个目录下创建，两个客户端创建一个名为 <code>new_node</code> 节点，只有一个能够成功。</li>
+<li><code>ZooKeeper</code> 提供 <code>Watcher</code> 机制，客户端可以在服务端注册一个 <code>Watcher</code> 监听，当服务端的一些指定事件触动了这个 <code>Watcher</code>，就会向客户端发送通知</li>
+</ol>
+<h4 id="获取锁"><a href="#获取锁" class="headerlink" title="获取锁"></a>获取锁</h4><p>依赖上述特性，我们可以在 <code>ZooKeeper</code> 的树结构上，创建一个临时节点 <code>/distribute_lock/lock</code>, 只要有一个客户端创建了节点，表示该客户端获取到了锁；<br>而其他没有获取到锁的客户端，需要到 <code>ZooKeeper</code> 的 <code>/distribute_lock</code> 节点上注册一个子节点变更的 <code>Watcher</code> 监听，以便见听到子节点的变更情况。</p>
+<blockquote>
+<p>— distribute_lock </br></p>
+<blockquote>
+<p>— lock</p>
+</blockquote>
+</blockquote>
+<p><img src="/assets/picture/zk_simple_lock.png" alt="图片"></p>
+<h4 id="释放锁"><a href="#释放锁" class="headerlink" title="释放锁"></a>释放锁</h4><ol>
+<li>客户端执行完业务逻辑后，主动删除自己创建的临时节点；</li>
+<li>客户端宕机后，<code>ZooKeeper</code> 和客户端之间的对话失效、连接断开，客户端创建的临时节点将被自动删除</li>
+<li>客户端释放锁之后，其他客户端通过 <code>Watcher</code> 监控得到锁被释放的通知，而来竞争获取锁</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag"># 分布式锁</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2016/09/20/%E6%8A%80%E6%9C%AF/mybatis/2016-09-20-mybatis%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB/" rel="prev" title="mybatis 源码阅读(一)">
+      <i class="fa fa-chevron-left"></i> mybatis 源码阅读(一)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2016/12/01/%E6%8A%80%E6%9C%AF/spring/2016-12-01-SpringMVC%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0-mvc%E5%8A%A0%E8%BD%BD%E8%BF%87%E7%A8%8B/" rel="next" title="SpringMVC源码学习 —— MVC 配置加载过程">
+      SpringMVC源码学习 —— MVC 配置加载过程 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BE%9D%E8%B5%96%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="nav-number"></span> <span class="nav-text">1. 依赖数据库实现分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%EF%BC%9A-%E4%B8%8A%E9%9D%A2%E8%AF%B4%E7%9A%84%E8%BF%99%E4%BA%9B%E4%BE%9D%E8%B5%96%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%EF%BC%8C%E9%83%BD%E8%A6%81%E9%81%BF%E5%85%8D%E5%8D%95%E6%95%B0%E6%8D%AE%E5%BA%93%E7%A4%BA%E4%BE%8B%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%8C%E5%A6%82%E6%9E%9C%E5%8F%AA%E6%9C%89%E4%B8%80%E4%B8%AA%E6%95%B0%E6%8D%AE%E5%BA%93%E7%A4%BA%E4%BE%8B%EF%BC%8C%E8%80%8C%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%95%E6%9C%BA%E4%BA%86%EF%BC%8C%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%B0%86%E4%B8%8D%E8%83%BD%E6%8F%90%E4%BE%9B%E6%9C%8D%E5%8A%A1%EF%BC%9B%E5%9B%A0%E6%AD%A4%EF%BC%8C%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E4%BE%9D%E8%B5%96%E7%9A%84%E6%95%B0%E6%8D%AE%E5%BA%93%E5%BF%85%E9%A1%BB%E9%85%8D%E7%BD%AE%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AE%9E%E4%BE%8B%EF%BC%8C%E5%88%A9%E7%94%A8%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%E9%80%BB%E8%BE%91%EF%BC%8C%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%EF%BC%81"><span class="nav-number">0.1.</span> <span class="nav-text">注意： 上面说的这些依赖数据库实现分布式锁，都要避免单数据库示例的问题，如果只有一个数据库示例，而数据库宕机了，分布式锁将不能提供服务；因此，分布式锁依赖的数据库必须配置多数据库实例，利用数据库的主从复制逻辑，保证数据同步！</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BE%9D%E8%B5%96redis%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="nav-number"></span> <span class="nav-text">2. 依赖redis实现分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#redis-%E9%9B%86%E7%BE%A4%E4%BD%BF%E7%94%A8%E5%BC%82%E6%AD%A5%E5%A4%8D%E5%88%B6"><span class="nav-number">0.0.1.</span> <span class="nav-text">redis 集群使用异步复制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RedLock"><span class="nav-number">1.</span> <span class="nav-text">RedLock</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BE%9D%E8%B5%96zookeeper-%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="nav-number"></span> <span class="nav-text">3. 依赖zookeeper 实现分布式锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E9%94%81"><span class="nav-number">1.</span> <span class="nav-text">获取锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%8A%E6%94%BE%E9%94%81"><span class="nav-number">2.</span> <span class="nav-text">释放锁</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

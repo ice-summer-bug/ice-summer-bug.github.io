@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="你知道 maven-shade-plugin 有什么作用吗？应该在什么场景使用呢？为什么 kylin-jdbc 要用 maven-shade-plugin ？？">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Maven 中的 maven-shade-plugin 插件">
+<meta property="og:url" content="https://summerbuger.github.io/2020/07/12/%E6%8A%80%E6%9C%AF/maven/Maven%20%E6%8F%92%E4%BB%B6%20shade/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="你知道 maven-shade-plugin 有什么作用吗？应该在什么场景使用呢？为什么 kylin-jdbc 要用 maven-shade-plugin ？？">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.executable.main.class.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.writo.custom.pair.in.mainfest.mf.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.artifact.set.include.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.select.dependency.write.maven.jpg">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.filter.select.dependency.class.png">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.minimize.jar.remove.class.jpg">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.relocation.dependencies.result.jpg">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.package.shade.and.common.jar.jpg">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/shade.plugin.keep.dependencies.with.provided.scope.jpg">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/biz.use.same.dependency.with.multi.version.png">
+<meta property="article:published_time" content="2020-07-12T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.992Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="Maven">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/shade.executable.main.class.png">
+
+<link rel="canonical" href="https://summerbuger.github.io/2020/07/12/%E6%8A%80%E6%9C%AF/maven/Maven%20%E6%8F%92%E4%BB%B6%20shade/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Maven 中的 maven-shade-plugin 插件 | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2020/07/12/%E6%8A%80%E6%9C%AF/maven/Maven%20%E6%8F%92%E4%BB%B6%20shade/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Maven 中的 maven-shade-plugin 插件
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-07-12 21:00:00" itemprop="dateCreated datePublished" datetime="2020-07-12T21:00:00+08:00">2020-07-12</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Maven/" itemprop="url" rel="index"><span itemprop="name">Maven</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">你知道 maven-shade-plugin 有什么作用吗？应该在什么场景使用呢？为什么 kylin-jdbc 要用 maven-shade-plugin ？？</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Maven-中的-maven-shade-plugin-插件"><a href="#Maven-中的-maven-shade-plugin-插件" class="headerlink" title="Maven 中的 maven-shade-plugin 插件"></a>Maven 中的 maven-shade-plugin 插件</h1><h2 id="maven-shade-plugin-插件有什么作用？"><a href="#maven-shade-plugin-插件有什么作用？" class="headerlink" title="maven-shade-plugin 插件有什么作用？"></a>maven-shade-plugin 插件有什么作用？</h2><p>Shade 插件的作用是将一个 maven 项目打包成一个 <code>uber-jar</code>(也成为 <code>fat-jar</code>)，并且将当前项目的依赖的部分依赖也打包进去。</p>
+<ul>
+<li>打包一个可运行的 <code>fat-jar</code>，支持指定 Main Class或者直接写入 MANIFEST.MF 文件</li>
+<li>选择性的将依赖也打包到 <code>fat-jar</code> 中<ul>
+<li>打包的时候自定义包含或者去除掉一些依赖</li>
+<li>打包的时候对包含的依赖进行细粒度的控制，指定包含或者排除哪些类</li>
+<li>可配置自动排除当前项目没有用到的依赖，最大程度的减小打包的 <code>fat-jar</code> 的体积</li>
+</ul>
+</li>
+<li>重命名当前项目的依赖项，将依赖项放置到重命名的文件夹中，避免依赖冲突</li>
+<li>将shade 插件指定的依赖项以及当前项目打包成包含自定义标识的 <code>fat-jar</code> 的同时打包一个普通 jar 包，还能部署到 maven 仓库    </li>
+<li>资源转化</li>
+<li>实现 Shader 接口，自定义 shading 逻辑</li>
+</ul>
+<h3 id="打包一个可运行的-jar-包"><a href="#打包一个可运行的-jar-包" class="headerlink" title="打包一个可运行的 jar 包"></a>打包一个可运行的 jar 包</h3><p><code>maven-shade-plugin</code> 插件最基础的功能就是打包出一个可执行的 <code>fat-jar</code>，主要是是对 <code>META-INF/MANIFEST.MF</code> 文件的修改</p>
+<h4 id="为可执行的-jar-包设置-Main-Class"><a href="#为可执行的-jar-包设置-Main-Class" class="headerlink" title="为可执行的 jar 包设置 Main Class"></a>为可执行的 jar 包设置 Main Class</h4><p>打包一个可执行的 jar 最简单的方式就是设置 Main Class，<code>maven-shade-plugin</code> 插件提供通过<code>org.apache.maven.plugins.shade.resource.ManifestResourceTransformer</code> 设置 &lt;mainClass&gt;</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">transformers</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">transformer</span> <span class="attr">implementation</span>=<span class="string">&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">mainClass</span>&gt;</span>com.liam.learning.maven.plugins.demo.shade.App<span class="tag">&lt;/<span class="name">mainClass</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">transformer</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">transformers</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>具体效果如下：</p>
+<p><img src="/assets/picture/shade.executable.main.class.png" title="Shade 指定 Main Class"></p>
+<h4 id="向-META-INF-MANIFEST-MF-文件写入自定义参数"><a href="#向-META-INF-MANIFEST-MF-文件写入自定义参数" class="headerlink" title="向 META-INF/MANIFEST.MF 文件写入自定义参数"></a>向 <code>META-INF/MANIFEST.MF</code> 文件写入自定义参数</h4><p>除了上面讲到了设置 Main-Class 的方式，我们还可以通过 <code>org.apache.maven.plugins.shade.resource.ManifestResourceTransformer</code> 的  &lt;manifestEntries&gt; 向 <code>META-INF/MANIFEST.MF</code> 文件写入 key-value 键值对</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">transformers</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">transformer</span> <span class="attr">implementation</span>=<span class="string">&quot;org.apache.maven.plugins.shade.resource.ManifestResourceTransformer&quot;</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">manifestEntries</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">Main-Class</span>&gt;</span>com.liam.learning.maven.plugins.demo.shade.App<span class="tag">&lt;/<span class="name">Main-Class</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">Build-Number</span>&gt;</span>10086<span class="tag">&lt;/<span class="name">Build-Number</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">Custom-Parameter</span>&gt;</span>Custom Parameter<span class="tag">&lt;/<span class="name">Custom-Parameter</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">manifestEntries</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">transformer</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">transformers</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里我们在 &lt;manifestEntries&gt; 中创建子节点，用子节点的名称作为 key，用子节点的值作为 value，写入 <code>META-INF/MANIFEST.MF</code> 文件，最终效果如下：</p>
+<p><img src="/assets/picture/shade.plugin.writo.custom.pair.in.mainfest.mf.png" title="Shade 向 MANIFEST.MF 文件写入自定义键值对"></p>
+<h3 id="打包-fat-jar-时选择放入jar-包中的依赖"><a href="#打包-fat-jar-时选择放入jar-包中的依赖" class="headerlink" title="打包 fat-jar 时选择放入jar 包中的依赖"></a>打包 fat-jar 时选择放入jar 包中的依赖</h3><p><code>maven-shade-plugin</code> 插件打包的时候可以选择性的将一些依赖项也打包到 <code>fat-jar</code> 中去</p>
+<h4 id="通过-include-或者-exclude-选择依赖放入-fat-jar"><a href="#通过-include-或者-exclude-选择依赖放入-fat-jar" class="headerlink" title="通过 include 或者 exclude 选择依赖放入 fat-jar"></a>通过 include 或者 exclude 选择依赖放入 <code>fat-jar</code></h4><p><code>maven-shade-plugin</code> 插件的配置中有 &lt;artifactSet&gt;，它支持设置 &lt;excludes&gt; 或者 &lt;includes&gt; 来排除或者正向选择一些依赖项打包到 <code>fat-jar</code> 中去，下面这个例子就是使用 &lt;includes&gt;</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactSet</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">include</span>&gt;</span>com.google.guava:guava<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">artifactSet</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p> &lt;includes&gt; 示例实际效果如下：</p>
+<p><img src="/assets/picture/shade.plugin.artifact.set.include.png" title="Shade 选择加入 fat-jar 的依赖"></p>
+<p>&lt;excludes&gt; 的使用方法和 &lt;includes&gt; 一致，需要注意的是 &lt;include&gt; 和 &lt;exclude&gt; 中的 artifact 的标识的格式是 <code>groupId:artifactId[[:type]:classifier]</code>，还有就是 &lt;excludes&gt; 的优先级高于 &lt;includes&gt; </p>
+<p>Shade 插件除将依赖中的class 文件写入 <code>fat-jar</code> 之外，还会在 <code>/META-INF/maven/</code> 文件夹下面写入 maven 相关文件 <code>pom.properties</code> 和 <code>pom.xml</code>，包含依赖项的 maven 坐标以及依赖项自身的依赖信息</p>
+<p><img src="/assets/picture/shade.plugin.select.dependency.write.maven.jpg" title="Shade 选择的依赖的 mave 信息"></p>
+<p>这里的 <code>/META-INF/maven/com.google.guava/guava/pom.properties</code> 文件中就说明了打包进 <code>fat-jar</code> 的 guava 工具包的版本信息</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#Generated by org.apache.felix.bundleplugin</span></span><br><span class="line"><span class="comment">#Thu Dec 26 22:08:20 EST 2019</span></span><br><span class="line"><span class="attr">version</span>=<span class="string">28.2-jre</span></span><br><span class="line"><span class="attr">groupId</span>=<span class="string">com.google.guava</span></span><br><span class="line"><span class="attr">artifactId</span>=<span class="string">guava</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="通过-lt-filter-gt-细粒度的控制依赖项的中的哪些-class-文件放入-fat-jar"><a href="#通过-lt-filter-gt-细粒度的控制依赖项的中的哪些-class-文件放入-fat-jar" class="headerlink" title="通过 &lt;filter&gt; 细粒度的控制依赖项的中的哪些 class 文件放入 fat-jar"></a>通过 &lt;filter&gt; 细粒度的控制依赖项的中的哪些 class 文件放入 fat-jar</h4><p>有时候我们需要使用的仅仅是依赖中的部分类，为了更细粒度的控制依赖中的哪些类被放入 <code>fat-jar</code> 中，Shade 插件提供了 &lt;filters&gt; 配置节点，可以正向选择或者排除掉依赖项中的一些类，将选中的类放入 <code>fat-jar</code> 中，下面是个简单的示例</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactSet</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">include</span>&gt;</span>com.google.guava:guava<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">artifactSet</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">filters</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">filter</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">artifact</span>&gt;</span>com.google.guava:guava<span class="tag">&lt;/<span class="name">artifact</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">include</span>&gt;</span>com/google/common/base/**<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">filter</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">filters</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>实际效果是：</p>
+<p><img src="/assets/picture/shade.plugin.filter.select.dependency.class.png" title="Shade 细粒度选择放入 fat-jar 的依赖中的类"></p>
+<p>这里将依赖 <code>com.google.guava:guava</code> 中的 <code>com/google/common/base/</code> 文件夹中的类都放入 <code>fat-jar</code> 中，这里需要注意注意一下，这时候 <code>/META-INF/maven/</code> 文件夹中没有 <code>com.google.guava:guava</code> 依赖的 maven 信息，没有办法直观的确定依赖项的版本信息了。</p>
+<h4 id="使用-lt-minimizeJar-gt-true-lt-minimizeJar-gt-将最小范围内的依赖打包进-fat-jar"><a href="#使用-lt-minimizeJar-gt-true-lt-minimizeJar-gt-将最小范围内的依赖打包进-fat-jar" class="headerlink" title="使用 &lt;minimizeJar&gt;true&lt;/minimizeJar&gt; 将最小范围内的依赖打包进 fat-jar"></a>使用 &lt;minimizeJar&gt;true&lt;/minimizeJar&gt; 将最小范围内的依赖打包进 fat-jar</h4><p>除了上面讲到的手动的选择依赖放入 <code>fat-jar</code>，Shade 插件还支持自动删除依赖中没有用到的类，再将剩下的类放入 <code>fat-jar</code> 中，尽量打包一个体积最小的 <code>fat-jar</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">minimizeJar</span>&gt;</span>true<span class="tag">&lt;/<span class="name">minimizeJar</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>执行 mvn 指令时，加上 <code>-X</code> 参数，在 DEBUG 日志中可以看到 Shade 插件会删除没有使用的类</p>
+<p><img src="/assets/picture/shade.plugin.minimize.jar.remove.class.jpg" title="Shade 删除不使用的类，精简 fat-jar"></p>
+<h4 id="lt-minimizeJar-gt-和-lt-filter-gt-的结合使用"><a href="#lt-minimizeJar-gt-和-lt-filter-gt-的结合使用" class="headerlink" title="&lt;minimizeJar&gt; 和 &lt;filter&gt; 的结合使用"></a>&lt;minimizeJar&gt; 和 &lt;filter&gt; 的结合使用</h4><p>Shade 插件在 1.6 及其以上版本中， &lt;minimizeJar&gt; 和包含过滤器(&lt;filter&gt; 和 &lt;includes&gt;) 结合使用，可以对过滤器正向选择的依赖隐式去除不使用的依赖，但是如果使用过了 <code>&lt;excludeDefaults&gt;fasle&lt;/excludeDefaults&gt;</code> 则上述行为将不会发生</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">minimizeJar</span>&gt;</span>true<span class="tag">&lt;/<span class="name">minimizeJar</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">filters</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">filter</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">artifact</span>&gt;</span>com.google.guava:guava<span class="tag">&lt;/<span class="name">artifact</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">excludeDefaults</span>&gt;</span>false<span class="tag">&lt;/<span class="name">excludeDefaults</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">include</span>&gt;</span>com/google/common/base/Preconditions.class<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">include</span>&gt;</span>com/google/common/annotations/Beta.class<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">include</span>&gt;</span>com/google/common/annotations/GwtCompatible.class<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">include</span>&gt;</span>com/google/errorprone/annotations/CanIgnoreReturnValue.class<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">filter</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">filters</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="对依赖项的权限名进行重命名，避免依赖冲突"><a href="#对依赖项的权限名进行重命名，避免依赖冲突" class="headerlink" title="对依赖项的权限名进行重命名，避免依赖冲突"></a>对依赖项的权限名进行重命名，避免依赖冲突</h4><p>JVM 通过类加载器去加载类，类加载器通过类的全限定名去确定一个类，Shade 插件支持将依赖项中的类的全限定名进行重命名，当前项目中的 import 语句也会被修改</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">relocations</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>com.google<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>com.google.shade<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">relocations</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里我们将 <code>com.google</code> 重命名为 <code>com.google.shade</code>，Shade 插件在打包的时候，会将 com.google.* 下的类的全限定名改为 com.google.shade，还会将使用到 com.google.* 的 import 语句中的全限定名进行修改，效果如下：</p>
+<p><img src="/assets/picture/shade.plugin.relocation.dependencies.result.jpg" title="Shade 插件重命名依赖项"></p>
+<h4 id="同时打包-shade-包和普通-jar-包"><a href="#同时打包-shade-包和普通-jar-包" class="headerlink" title="同时打包 shade 包和普通 jar 包"></a>同时打包 shade 包和普通 jar 包</h4><p>默认情况下使用 Shade 插件打包会用插件修改后的 jar 包去替换支持情况下的普通包，并且能把这个jar 包部署到 maven 仓库；Shade 插件也支持同时打包、部署插件修改的 jar 包和普通的 jar 包，这就需要使用 <code>&lt;shadedArtifactAttached&gt;true&lt;/shadedArtifactAttached&gt;</code> 配置。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">shadedArtifactAttached</span>&gt;</span>true<span class="tag">&lt;/<span class="name">shadedArtifactAttached</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">shadedClassifierName</span>&gt;</span>with-shade-classifier<span class="tag">&lt;/<span class="name">shadedClassifierName</span>&gt;</span> <span class="comment">&lt;!-- Any name that makes sense --&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p><img src="/assets/picture/shade.plugin.package.shade.and.common.jar.jpg" title="Shade 插件同时打包 shade 包和普通jar 包"></p>
+<h4 id="资源转换器"><a href="#资源转换器" class="headerlink" title="资源转换器"></a>资源转换器</h4><p>这一部分了解不多，目前没有用到过，有时间再补充，详细信息参见<a target="_blank" rel="noopener" href="http://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html#">官方文档</a></p>
+<h4 id="自定义-Shade-插件的功能"><a href="#自定义-Shade-插件的功能" class="headerlink" title="自定义 Shade 插件的功能"></a>自定义 Shade 插件的功能</h4><p>Shade 插件定义了一个接口 <code>org.apache.maven.plugins.shade.Shader</code>，它的默认实现是 <code>org.apache.maven.plugins.shade.DefaultShader</code>；Shade 插件还支持自行实现 <code>Shader</code> 接口，自定义Shade 插件的功能，具体步骤如下</p>
+<h5 id="实现一个自定义功能的-Shade-插件的扩展项目"><a href="#实现一个自定义功能的-Shade-插件的扩展项目" class="headerlink" title="实现一个自定义功能的 Shade 插件的扩展项目"></a>实现一个自定义功能的 Shade 插件的扩展项目</h5><p>首先是创建一个自定义的 Shade 插件扩展项目，然后在按照以下步骤完成扩展项目的开发</p>
+<ul>
+<li>引入依赖包 </li>
+</ul>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.plexus<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>plexus-component-annotations<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>实现自己的 Shader </li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component( role = Shader.class, hint = &quot;mock&quot; )</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MockShader</span></span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">Shader</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">  <span class="comment">// implement the interface here</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>在扩展项目中加入 plexus-component-metadata 插件</li>
+</ul>
+<p><code>org.codehaus.plexus:plexus-component-metadata</code> 插件的作用是生成 <code>META-INF/plexus/components.xml</code> 文件去描述组件信息</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.plexus<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>plexus-component-metadata<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>generate-metadata<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="使用自定义的-Shader-实现"><a href="#使用自定义的-Shader-实现" class="headerlink" title="使用自定义的 Shader 实现"></a>使用自定义的 Shader 实现</h5><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">project</span>&gt;</span></span><br><span class="line">  ...</span><br><span class="line">  <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.your.custom.shade<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mock-shader<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">              <span class="tag">&lt;<span class="name">shaderHint</span>&gt;</span>mock<span class="tag">&lt;/<span class="name">shaderHint</span>&gt;</span> // 在 MockShader 中设置的 hint</span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line">  ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="maven-shade-plugin-的参数说明"><a href="#maven-shade-plugin-的参数说明" class="headerlink" title="maven-shade-plugin 的参数说明"></a>maven-shade-plugin 的参数说明</h2><p><code>maven-shade-plugin</code> 的目标只有两个， <code>shade:help</code> 和 <code>shade:shade</code>，这里讲解一下 <code>shade:shade</code> 相关的参数</p>
+<h3 id="lt-artifactSet-gt"><a href="#lt-artifactSet-gt" class="headerlink" title="&lt;artifactSet&gt;"></a>&lt;artifactSet&gt;</h3><ul>
+<li>参数说明：指定 <code>fat-jar</code> 中包含或者排除哪些依赖，通过 <code>groupId:artifactId:type:classifier</code> 这种复合标识符来标识，从 1.3 版本开始复合标识符支持 <code>*</code> 和 <code>?</code>，为了便利的使用<ul>
+<li><code>groupId</code> 等同于 <code>groupId:*:*:*</code></li>
+<li><code>groupId:artifactId</code> 等同于 <code>groupId:artifactId:*:*</code></li>
+<li><code>groupId:artifactId:classifier</code> 等同于 <code>groupId:artifactId:*:classifier</code></li>
+</ul>
+</li>
+<li>使用示例：<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">artifactSet</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">excludes</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclude</span>&gt;</span>*:commons-logging<span class="tag">&lt;/<span class="name">exclude</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">excludes</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">artifactSet</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>是否必填：否</li>
+</ul>
+<h3 id="lt-createDependencyReducedPom-gt"><a href="#lt-createDependencyReducedPom-gt" class="headerlink" title="&lt;createDependencyReducedPom&gt;"></a>&lt;createDependencyReducedPom&gt;</h3><ul>
+<li>参数说明：控制是否精简 <code>fat-jar</code> 中 <code>pom.xml</code> 文件的参数，默认值为 true，包含在 <code>fat-jar</code> 中的依赖将被从 <code>pom.xml</code> 文件的 <code>&lt;dependencies&gt;</code> 节点下被删除，避免了使用 <code>fat-jar</code> 的项目中出现不必要的依赖冲突；被精简的 <code>pom.xml</code> 文件被命名为 <code>dependency-reduced-pom.xml</code>，存储在 <code>pom.xml</code> 所在目录中，除非你用 &lt;dependencyReducedPomLocation&gt; 参数指定 <code>dependency-reduced-pom.xml</code> 文件的存储位置</li>
+<li>是否必填：否</li>
+<li>默认值：true</li>
+</ul>
+<h3 id="lt-lt-createSourcesJar-gt"><a href="#lt-lt-createSourcesJar-gt" class="headerlink" title="&lt;&lt;createSourcesJar&gt;"></a>&lt;&lt;createSourcesJar&gt;</h3><ul>
+<li>参数说明：控制是否的打包源文件 jar 包的参数</li>
+<li>参数类型：boolean</li>
+<li>是否必填：否</li>
+</ul>
+<h3 id="lt-lt-createSourcesJar-gt-1"><a href="#lt-lt-createSourcesJar-gt-1" class="headerlink" title="&lt;&lt;createSourcesJar&gt;"></a>&lt;&lt;createSourcesJar&gt;</h3><ul>
+<li>参数说明：控制是否的打包测试源代码 jar 包的参数</li>
+<li>参数类型：boolean</li>
+<li>是否必填：否</li>
+</ul>
+<h3 id="lt-dependencyReducedPomLocation-gt"><a href="#lt-dependencyReducedPomLocation-gt" class="headerlink" title="&lt;dependencyReducedPomLocation&gt;"></a>&lt;dependencyReducedPomLocation&gt;</h3><ul>
+<li>参数说明：指定 <code>dependency-reduced-pom.xml</code> 文件的存储位置</li>
+<li>参数类型：java.io.File</li>
+<li>是否必填：否</li>
+<li>默认值：${basedir}/dependency-reduced-pom.xml</li>
+</ul>
+<h3 id="lt-filters-gt"><a href="#lt-filters-gt" class="headerlink" title="&lt;filters&gt;"></a>&lt;filters&gt;</h3><ul>
+<li>参数说明：归档打包 <code>fat-jar</code> 的时候用到的过滤器，支持使用和 <code>&lt;artifactSet&gt;</code> 标签中格式一样的复合标识符标识一个依赖，再指定一组 <code>include</code>/<code>exclude</code> 文件表达式，去过滤选择加入 <code>fat-jar</code> 包的文件；<code>&lt;include&gt;</code> 节点先被处理，<code>&lt;exclude&gt;</code> 后被处理，所以 <code>&lt;exclude&gt;</code> 排除过滤器优先级更高，先用包含过滤器选择一批文件，再用排除过滤器去除掉一部分文件，剩下的再放入 <code>fat-jar</code> 包；默认情况下所有的依赖文件都会被归档，指定了多个包含和排除过滤器的时候，选择多个过滤器的交集放入 <code>fat-jar</code> 中。</li>
+<li>使用示例：<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">filters</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">filter</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifact</span>&gt;</span>junit:junit<span class="tag">&lt;/<span class="name">artifact</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">includes</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">include</span>&gt;</span>org/junit/**<span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">includes</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">excludes</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclude</span>&gt;</span>org/junit/experimental/**<span class="tag">&lt;/<span class="name">exclude</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">excludes</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filters</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>是否必填：否</li>
+</ul>
+<h3 id="lt-finalName-gt"><a href="#lt-finalName-gt" class="headerlink" title="&lt;finalName&gt;"></a>&lt;finalName&gt;</h3><ul>
+<li>参数说明：<code>fat-jar</code> 的名称，通过 <code>&lt;build&gt;&lt;finalName&gt;</code> 可以自定义jar 包名称，Shade 插件的 <code>&lt;finalName&gt;</code> 如果和 <code>&lt;build&gt;&lt;finalName&gt;</code> 设置的不一致，部署到 maven 仓库的jar 包只会是普通的jar，Shade 插件不会进行任何替换操作，即使设置了 <code>shadedArtifactAttached</code> 参数</li>
+<li>是否必填：否</li>
+</ul>
+<h3 id="lt-generateUniqueDependencyReducedPom-gt"><a href="#lt-generateUniqueDependencyReducedPom-gt" class="headerlink" title="&lt;generateUniqueDependencyReducedPom&gt;"></a>&lt;generateUniqueDependencyReducedPom&gt;</h3><ul>
+<li>参数说明：创建 <code>dependency-reduced-pom.xml</code> 时，是否在文件名中增加唯一标识，如果为 true，则创建的文件名称为 <code>dependency-reduced-pom-[UniqueKey].xml</code>，避免多次构建中创建的 <code>dependency-reduced-pom.xml</code> 被覆盖</li>
+<li>参数类型：boolean</li>
+<li>是否必填：否</li>
+<li>默认值：false</li>
+</ul>
+<h3 id="lt-keepDependenciesWithProvidedScope-gt"><a href="#lt-keepDependenciesWithProvidedScope-gt" class="headerlink" title="&lt;keepDependenciesWithProvidedScope&gt;"></a>&lt;keepDependenciesWithProvidedScope&gt;</h3><ul>
+<li><p>参数说明：和 createDependencyReducedPom 参数不一样，keepDependenciesWithProvidedScope 参数为 true 时 <code>pom.xml</code> 中的依赖项不会被删除，会被保留，但是 <code>&lt;scope&gt;</code> 是 <code>provided</code>， 也就是说项目的依赖项需要实际项目所在的容器提供。**<em>这也意味着使用这个参数的时候不要对依赖项进行重命名了，否则会出现依赖缺失**</em></p>
+</li>
+<li><p>参数类型：boolean</p>
+</li>
+<li><p>是否必填：否</p>
+</li>
+<li><p>默认值：false</p>
+</li>
+<li><p>使用示例：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">keepDependenciesWithProvidedScope</span>&gt;</span>true<span class="tag">&lt;/<span class="name">keepDependenciesWithProvidedScope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>示例效果</p>
+</li>
+</ul>
+<p><img src="/assets/picture/shade.plugin.keep.dependencies.with.provided.scope.jpg" title="Shade 插件保留依赖项，设置为 provided 作用域"></p>
+<h3 id="lt-minimizeJar-gt"><a href="#lt-minimizeJar-gt" class="headerlink" title="&lt;minimizeJar&gt;"></a>&lt;minimizeJar&gt;</h3><ul>
+<li>参数说明：是否自动精简依赖项中的文件，当前项目中没有使用的类文件被自动删除，不会被加入 <code>fat-jar</code></li>
+<li>参数类型：boolean</li>
+<li>是否必填：否</li>
+<li>默认值：false </li>
+</ul>
+<p><strong><em>未完待续</em></strong></p>
+<h2 id="maven-shade-plugin-的使用场景是什么？"><a href="#maven-shade-plugin-的使用场景是什么？" class="headerlink" title="maven-shade-plugin 的使用场景是什么？"></a>maven-shade-plugin 的使用场景是什么？</h2><p>从上面讲到的 Shade 插件的功能来看，它的作用主要是</p>
+<ul>
+<li>打包一个可以执行 jar 包</li>
+<li>选择项目依赖也打包到 <code>fat-jar</code> 中</li>
+<li>重命名依赖项中 Class 的全限定名，对使用依赖的的 import 语句也进行修改，避免依赖冲突</li>
+</ul>
+<p>前两个功能的使用都比较简单，从上面即可看到如何使用，下面主要讲讲 <strong><em>如何使用 Shade 插件解决依赖同一个jar 包的不同版本</em></strong></p>
+<h3 id="如何使用-Shade-插件解决依赖同一个jar-包的不同版本"><a href="#如何使用-Shade-插件解决依赖同一个jar-包的不同版本" class="headerlink" title="如何使用 Shade 插件解决依赖同一个jar 包的不同版本"></a>如何使用 Shade 插件解决依赖同一个jar 包的不同版本</h3><p>实际项目中可能会出现这种情况，我们的业务项目 <code>com.liam:biz</code> 依赖 <code>com.xxx:dep1:1.0</code> 和 <code>com.xxx:dep2:1.0</code>，<code>com.xxx:dep1:1.0</code> 传递依赖 <code>com.xxx:dep3:1.1</code>，而 <code>com.xxx:dep2:1.0</code> 依赖 <code>com.xxx:dep3:1.2</code>，这里就出现了对 <code>com.xxx:dep3</code> 两个版本的依赖，如果 <code>com.xxx:dep3</code> 高版本对低版本进行了向下兼容，你可以直接在 &lt;dependencyManagement&gt; 中指定使用高版本的 <code>com.xxx:dep3:1.2</code>，但是如果 <code>com.xxx:dep3:1.3</code> 和 <code>com.xxx:dep3:1.2</code> 不兼容呢？</p>
+<p><img src="/assets/picture/biz.use.same.dependency.with.multi.version.png" title="业务项目中使用到同一个 jar 包的不同版本"></p>
+<p>看到这个问题，我们考虑对三方包 <code>com.xxx:dep3</code> 进行一些修改，修改成一个自定义的二方包，修改 依赖的类的全限定名，这里我们就可以使用 Shade 插件的 &lt;relocations&gt;，将依赖项打包进 <code>fat-jar</code> 的同时，对依赖的类的全限定名进行修改，就可以避免依赖冲突了，具体插件配置如下:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-shade-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.4<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>shade<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">relocations</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">relocation</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>com.xxx.dep3<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">shadedPattern</span>&gt;</span>shaded.com.xxx.dep3<span class="tag">&lt;/<span class="name">shadedPattern</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">relocation</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">relocations</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这样 <code>fat-jar</code> 中就会包含 <code>/shaded/com.xxx.dep3/**</code> 为路径的依赖，业务代码中的 import 语句也会被修改为 <code>import shaded.com.xxx.dep3.xxx</code> </p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Maven/" rel="tag"># Maven</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/07/01/%E6%8A%80%E6%9C%AF/mysql/mysql%20undo%20log%20%E5%92%8C%20mvcc/" rel="prev" title="Mysql InnoDDB 的 undo log 和 mvcc">
+      <i class="fa fa-chevron-left"></i> Mysql InnoDDB 的 undo log 和 mvcc
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Maven-%E4%B8%AD%E7%9A%84-maven-shade-plugin-%E6%8F%92%E4%BB%B6"><span class="nav-number">1.</span> <span class="nav-text">Maven 中的 maven-shade-plugin 插件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#maven-shade-plugin-%E6%8F%92%E4%BB%B6%E6%9C%89%E4%BB%80%E4%B9%88%E4%BD%9C%E7%94%A8%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">maven-shade-plugin 插件有什么作用？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%8C%85%E4%B8%80%E4%B8%AA%E5%8F%AF%E8%BF%90%E8%A1%8C%E7%9A%84-jar-%E5%8C%85"><span class="nav-number">1.1.1.</span> <span class="nav-text">打包一个可运行的 jar 包</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%BA%E5%8F%AF%E6%89%A7%E8%A1%8C%E7%9A%84-jar-%E5%8C%85%E8%AE%BE%E7%BD%AE-Main-Class"><span class="nav-number">1.1.1.1.</span> <span class="nav-text">为可执行的 jar 包设置 Main Class</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%91-META-INF-MANIFEST-MF-%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8F%82%E6%95%B0"><span class="nav-number">1.1.1.2.</span> <span class="nav-text">向 META-INF&#x2F;MANIFEST.MF 文件写入自定义参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%89%93%E5%8C%85-fat-jar-%E6%97%B6%E9%80%89%E6%8B%A9%E6%94%BE%E5%85%A5jar-%E5%8C%85%E4%B8%AD%E7%9A%84%E4%BE%9D%E8%B5%96"><span class="nav-number">1.1.2.</span> <span class="nav-text">打包 fat-jar 时选择放入jar 包中的依赖</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-include-%E6%88%96%E8%80%85-exclude-%E9%80%89%E6%8B%A9%E4%BE%9D%E8%B5%96%E6%94%BE%E5%85%A5-fat-jar"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">通过 include 或者 exclude 选择依赖放入 fat-jar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E8%BF%87-lt-filter-gt-%E7%BB%86%E7%B2%92%E5%BA%A6%E7%9A%84%E6%8E%A7%E5%88%B6%E4%BE%9D%E8%B5%96%E9%A1%B9%E7%9A%84%E4%B8%AD%E7%9A%84%E5%93%AA%E4%BA%9B-class-%E6%96%87%E4%BB%B6%E6%94%BE%E5%85%A5-fat-jar"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">通过 &lt;filter&gt; 细粒度的控制依赖项的中的哪些 class 文件放入 fat-jar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8-lt-minimizeJar-gt-true-lt-minimizeJar-gt-%E5%B0%86%E6%9C%80%E5%B0%8F%E8%8C%83%E5%9B%B4%E5%86%85%E7%9A%84%E4%BE%9D%E8%B5%96%E6%89%93%E5%8C%85%E8%BF%9B-fat-jar"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">使用 &lt;minimizeJar&gt;true&lt;&#x2F;minimizeJar&gt; 将最小范围内的依赖打包进 fat-jar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#lt-minimizeJar-gt-%E5%92%8C-lt-filter-gt-%E7%9A%84%E7%BB%93%E5%90%88%E4%BD%BF%E7%94%A8"><span class="nav-number">1.1.2.4.</span> <span class="nav-text">&lt;minimizeJar&gt; 和 &lt;filter&gt; 的结合使用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E4%BE%9D%E8%B5%96%E9%A1%B9%E7%9A%84%E6%9D%83%E9%99%90%E5%90%8D%E8%BF%9B%E8%A1%8C%E9%87%8D%E5%91%BD%E5%90%8D%EF%BC%8C%E9%81%BF%E5%85%8D%E4%BE%9D%E8%B5%96%E5%86%B2%E7%AA%81"><span class="nav-number">1.1.2.5.</span> <span class="nav-text">对依赖项的权限名进行重命名，避免依赖冲突</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%8C%E6%97%B6%E6%89%93%E5%8C%85-shade-%E5%8C%85%E5%92%8C%E6%99%AE%E9%80%9A-jar-%E5%8C%85"><span class="nav-number">1.1.2.6.</span> <span class="nav-text">同时打包 shade 包和普通 jar 包</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%B5%84%E6%BA%90%E8%BD%AC%E6%8D%A2%E5%99%A8"><span class="nav-number">1.1.2.7.</span> <span class="nav-text">资源转换器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89-Shade-%E6%8F%92%E4%BB%B6%E7%9A%84%E5%8A%9F%E8%83%BD"><span class="nav-number">1.1.2.8.</span> <span class="nav-text">自定义 Shade 插件的功能</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E8%87%AA%E5%AE%9A%E4%B9%89%E5%8A%9F%E8%83%BD%E7%9A%84-Shade-%E6%8F%92%E4%BB%B6%E7%9A%84%E6%89%A9%E5%B1%95%E9%A1%B9%E7%9B%AE"><span class="nav-number">1.1.2.8.1.</span> <span class="nav-text">实现一个自定义功能的 Shade 插件的扩展项目</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89%E7%9A%84-Shader-%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.1.2.8.2.</span> <span class="nav-text">使用自定义的 Shader 实现</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven-shade-plugin-%E7%9A%84%E5%8F%82%E6%95%B0%E8%AF%B4%E6%98%8E"><span class="nav-number">1.2.</span> <span class="nav-text">maven-shade-plugin 的参数说明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-artifactSet-gt"><span class="nav-number">1.2.1.</span> <span class="nav-text">&lt;artifactSet&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-createDependencyReducedPom-gt"><span class="nav-number">1.2.2.</span> <span class="nav-text">&lt;createDependencyReducedPom&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-lt-createSourcesJar-gt"><span class="nav-number">1.2.3.</span> <span class="nav-text">&lt;&lt;createSourcesJar&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-lt-createSourcesJar-gt-1"><span class="nav-number">1.2.4.</span> <span class="nav-text">&lt;&lt;createSourcesJar&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-dependencyReducedPomLocation-gt"><span class="nav-number">1.2.5.</span> <span class="nav-text">&lt;dependencyReducedPomLocation&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-filters-gt"><span class="nav-number">1.2.6.</span> <span class="nav-text">&lt;filters&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-finalName-gt"><span class="nav-number">1.2.7.</span> <span class="nav-text">&lt;finalName&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-generateUniqueDependencyReducedPom-gt"><span class="nav-number">1.2.8.</span> <span class="nav-text">&lt;generateUniqueDependencyReducedPom&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-keepDependenciesWithProvidedScope-gt"><span class="nav-number">1.2.9.</span> <span class="nav-text">&lt;keepDependenciesWithProvidedScope&gt;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#lt-minimizeJar-gt"><span class="nav-number">1.2.10.</span> <span class="nav-text">&lt;minimizeJar&gt;</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maven-shade-plugin-%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.3.</span> <span class="nav-text">maven-shade-plugin 的使用场景是什么？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8-Shade-%E6%8F%92%E4%BB%B6%E8%A7%A3%E5%86%B3%E4%BE%9D%E8%B5%96%E5%90%8C%E4%B8%80%E4%B8%AAjar-%E5%8C%85%E7%9A%84%E4%B8%8D%E5%90%8C%E7%89%88%E6%9C%AC"><span class="nav-number">1.3.1.</span> <span class="nav-text">如何使用 Shade 插件解决依赖同一个jar 包的不同版本</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

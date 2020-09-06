@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.0.2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"summerbuger.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="MarkDown 基本语法汇总">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MarkDown 基本语法">
+<meta property="og:url" content="https://summerbuger.github.io/2016/07/06/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/markdown%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/index.html">
+<meta property="og:site_name" content="夏虫低语">
+<meta property="og:description" content="MarkDown 基本语法汇总">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://summerbuger.github.io/assets/picture/headPicture.png">
+<meta property="article:published_time" content="2016-07-06T13:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-10T16:38:22.984Z">
+<meta property="article:author" content="Liam Chen">
+<meta property="article:tag" content="MarkDown">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://summerbuger.github.io/assets/picture/headPicture.png">
+
+<link rel="canonical" href="https://summerbuger.github.io/2016/07/06/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/markdown%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>MarkDown 基本语法 | 夏虫低语</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">夏虫低语</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-schedule">
+
+    <a href="/schedule/" rel="section"><i class="fa fa-calendar fa-fw"></i>日程表</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://summerbuger.github.io/2016/07/06/%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/markdown%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Liam Chen">
+      <meta itemprop="description" content="关于技术与生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="夏虫低语">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MarkDown 基本语法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-07-06 21:00:00" itemprop="dateCreated datePublished" datetime="2016-07-06T21:00:00+08:00">2016-07-06</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/GitHub-Pages/" itemprop="url" rel="index"><span itemprop="name">GitHub Pages</span></a>
+                </span>
+            </span>
+
+          
+            <div class="post-description">MarkDown 基本语法汇总</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>看到同事用 [git+github+markdown+jekyll] 搭建了一个<a target="_blank" rel="noopener" href="http://littlepang.github.io/"><em>个人博客</em></a>， 感觉很不错，果断 fork 他的分支，给自己来一个，下面简单记一些 [markdown]的语法，或者说占位符的用法</p>
+<h1 id="MarkDown-基本语法"><a href="#MarkDown-基本语法" class="headerlink" title="MarkDown 基本语法"></a>MarkDown 基本语法</h1><hr>
+<h3 id="标题："><a href="#标题：" class="headerlink" title="标题："></a>标题：</h3><h4 id="1-在文字标题之前加上-“-”-表示标题，-通过-“-”-的数量表示标题等，一个”-”表示一级，两个表示二级，最多六级"><a href="#1-在文字标题之前加上-“-”-表示标题，-通过-“-”-的数量表示标题等，一个”-”表示一级，两个表示二级，最多六级" class="headerlink" title="1. 在文字标题之前加上 “#” 表示标题， 通过 “#” 的数量表示标题等，一个”#”表示一级，两个表示二级，最多六级"></a>1. 在文字标题之前加上 “#” 表示标题， 通过 “#” 的数量表示标题等，一个”#”表示一级，两个表示二级，最多六级</h4><pre><code>  例：# 用&quot;#&quot;表示标题
+     # 一级标题
+     ## 二级标题
+     ...
+     ####### 六级标题</code></pre>
+<h1 id="一级标题"><a href="#一级标题" class="headerlink" title="一级标题"></a>一级标题</h1><h2 id="二级标题"><a href="#二级标题" class="headerlink" title="二级标题"></a>二级标题</h2><p>…</p>
+<h6 id="六级标题"><a href="#六级标题" class="headerlink" title="六级标题"></a>六级标题</h6><hr>
+<h4 id="2-在文字下方加上两个以上的-“-“-表示标题-等同于二级标题-“-”"><a href="#2-在文字下方加上两个以上的-“-“-表示标题-等同于二级标题-“-”" class="headerlink" title="2. 在文字下方加上两个以上的 “-“ 表示标题, 等同于二级标题 (“##”)"></a>2. 在文字下方加上两个以上的 “-“ 表示标题, 等同于二级标题 (“##”)</h4><pre><code>  例： 在文字下方加上两个以上 &quot;-&quot; 表示标题
+----------------------------------</code></pre>
+<h2 id="两个以上-‘-‘-表示二级标题"><a href="#两个以上-‘-‘-表示二级标题" class="headerlink" title="两个以上 ‘-‘ 表示二级标题"></a>两个以上 ‘-‘ 表示二级标题</h2><h4 id="3-在文字下方加上两个以上的-“-”-表示标题，等同于一级标题-“-”"><a href="#3-在文字下方加上两个以上的-“-”-表示标题，等同于一级标题-“-”" class="headerlink" title="3. 在文字下方加上两个以上的 “=” 表示标题，等同于一级标题 (“#”)"></a>3. 在文字下方加上两个以上的 “=” 表示标题，等同于一级标题 (“#”)</h4><pre><code>    例：在文字下方加上 &quot;=&quot; 表示标题(两个以上&quot;=&quot;)
+=======================</code></pre>
+<h1 id="两个以上-‘-’-表示一级标题"><a href="#两个以上-‘-’-表示一级标题" class="headerlink" title="两个以上 ‘=’ 表示一级标题"></a>两个以上 ‘=’ 表示一级标题</h1><h3 id="粗体"><a href="#粗体" class="headerlink" title="粗体"></a>粗体</h3><h4 id="1-在-文字-前后-加上-两个-‘-’-或-‘-’"><a href="#1-在-文字-前后-加上-两个-‘-’-或-‘-’" class="headerlink" title="1. 在 文字 前后 加上 两个 ‘_’ 或 ‘*’"></a>1. 在 <strong>文字</strong> 前后 <strong>加上</strong> 两个 ‘_’ 或 ‘*’</h4><pre><code>  例：__n__  或 **n**</code></pre>
+<p><strong>粗体</strong></p>
+<h3 id="斜体"><a href="#斜体" class="headerlink" title="斜体"></a>斜体</h3><h4 id="1-在文字前后加上一个-‘-’-或-‘-’"><a href="#1-在文字前后加上一个-‘-’-或-‘-’" class="headerlink" title="1. 在文字前后加上一个 ‘_’ 或 ‘*’"></a>1. 在文字前后加上一个 ‘_’ 或 ‘*’</h4><pre><code>例： _斜体_ 或 *斜体*</code></pre>
+<p><em>斜体</em></p>
+<h3 id="粗斜体"><a href="#粗斜体" class="headerlink" title="粗斜体"></a>粗斜体</h3><h4 id="1-在文字前后加上三个-‘-’-或-‘-’"><a href="#1-在文字前后加上三个-‘-’-或-‘-’" class="headerlink" title="1. 在文字前后加上三个 ‘_’ 或 ‘*’"></a>1. 在文字前后加上三个 ‘_’ 或 ‘*’</h4><pre><code>例： ___斜粗体___ 或 ***斜粗体***</code></pre>
+<p><strong><em>粗斜体</em></strong>  <strong><em>粗斜体</em></strong></p>
+<h3 id="代码块"><a href="#代码块" class="headerlink" title="代码块"></a>代码块</h3><h4 id="1-行首加上四个-Tab-或-四个空格-代码块自带滚动条效果"><a href="#1-行首加上四个-Tab-或-四个空格-代码块自带滚动条效果" class="headerlink" title="1. 行首加上四个 Tab 或 四个空格 (代码块自带滚动条效果)"></a>1. 行首加上四个 Tab 或 四个空格 (代码块自带滚动条效果)</h4><pre><code>  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  -------------------------------------------------------------
+  ------------------
+  -------</code></pre>
+<h3 id="区块引用"><a href="#区块引用" class="headerlink" title="区块引用"></a>区块引用</h3><h4 id="1-文字前面加上-“-gt-”"><a href="#1-文字前面加上-“-gt-”" class="headerlink" title="1. 文字前面加上 “&gt;”"></a>1. 文字前面加上 “&gt;”</h4><pre><code>  例： &gt; 这个一个区块引用</code></pre>
+<blockquote>
+<p> 区块引用效果如下</p>
+</blockquote>
+<h4 id="2-区块引用可以嵌套使用"><a href="#2-区块引用可以嵌套使用" class="headerlink" title="2. 区块引用可以嵌套使用"></a>2. 区块引用可以嵌套使用</h4><pre><code>  例：
+  &gt; 这是外层
+  &gt;&gt; 这是内层
+  &gt;&gt;&gt; 这里更内层</code></pre>
+<p>示例效果：</p>
+<blockquote>
+<p>这里外层</p>
+<blockquote>
+<p>这是内层</p>
+<blockquote>
+<p>这是更内层<br>这也是内层</p>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>注意<br>如果 <code>&gt;</code> 和 <code>&gt;&gt;</code> 嵌套使用的话，从 <code>&gt;&gt;</code> 退到 <code>&gt;</code> 时，必须之间要加一个空格或者 <code>&gt;</code> 作为过渡，否则默认为下一行和上一行是同一级别的引用。如示例所示。<br>示例效果：</p>
+<blockquote>
+<p>这里外层</p>
+<blockquote>
+<p>这是内层</p>
+<blockquote>
+<p>这是更内层</p>
+</blockquote>
+<p>这也是内层</p>
+</blockquote>
+</blockquote>
+<h3 id="分割线"><a href="#分割线" class="headerlink" title="分割线"></a>分割线</h3><h4 id="1-三个以上”-“"><a href="#1-三个以上”-“" class="headerlink" title="1. 三个以上”-“"></a>1. 三个以上”-“</h4><pre><code>例： ----</code></pre>
+<p>示例效果如下</p>
+<hr>
+<h4 id="2-三个以上”-”"><a href="#2-三个以上”-”" class="headerlink" title="2. 三个以上”*”"></a>2. 三个以上”*”</h4><pre><code>    例： ***</code></pre>
+<p>示例效果如下</p>
+<hr>
+<h3 id="代码块和语法高亮"><a href="#代码块和语法高亮" class="headerlink" title="代码块和语法高亮"></a>代码块和语法高亮</h3><h4 id="1-代码块使用方法如下："><a href="#1-代码块使用方法如下：" class="headerlink" title="1. 代码块使用方法如下："></a>1. 代码块使用方法如下：</h4><pre><code>&lt;!--hexoPostRenderEscape:&lt;figure class=&quot;highlight js&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;echo(&lt;span class=&quot;string&quot;&gt;&amp;quot;this a js code Block&amp;quot;&lt;/span&gt;);&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;:hexoPostRenderEscape--&gt;</code></pre>
+<p>代码块效果如下</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> tip = <span class="string">&quot;this a js code block&quot;</span>;</span><br><span class="line">echo(tip);</span><br></pre></td></tr></table></figure>
+<h4 id="2-代码块语法高亮-在-“-”-后加上-language"><a href="#2-代码块语法高亮-在-“-”-后加上-language" class="headerlink" title="2. 代码块语法高亮 在 “```” 后加上 language"></a>2. 代码块语法高亮 在 “```” 后加上 language</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;hello markdown&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="3-高亮部分文字"><a href="#3-高亮部分文字" class="headerlink" title="3. 高亮部分文字"></a>3. 高亮部分文字</h4><pre><code>`高亮部分`</code></pre>
+<p><code>高亮效果示例</code></p>
+<h3 id="超链接"><a href="#超链接" class="headerlink" title="超链接"></a>超链接</h3><h4 id="1-“-链接显示文字-url-“超链接标题”-“-url-和标题之间有空格"><a href="#1-“-链接显示文字-url-“超链接标题”-“-url-和标题之间有空格" class="headerlink" title="1. “[链接显示文字](url “超链接标题”)“ url 和标题之间有空格"></a>1. “[链接显示文字](url “超链接标题”)“ url 和标题之间有空格</h4><pre><code>例： [百度](http://www.baidu.com &quot;百度&quot;)</code></pre>
+<p>示例效果:   <a target="_blank" rel="noopener" href="http://www.baidu.com/" title="百度">百度</a></p>
+<h4 id="2-指向本地文件的链接"><a href="#2-指向本地文件的链接" class="headerlink" title="2. 指向本地文件的链接"></a>2. 指向本地文件的链接</h4><pre><code>例: [icon.png](/assets/picture/headPicture.png)</code></pre>
+<p><a href="/assets/picture/headPicture.png">icon.png</a></p>
+<h3 id="图片引用"><a href="#图片引用" class="headerlink" title="图片引用"></a>图片引用</h3><h4 id="1-图片引用使用方法如下"><a href="#1-图片引用使用方法如下" class="headerlink" title="1.  图片引用使用方法如下"></a>1.  图片引用使用方法如下</h4><pre><code>例： ![图片](图片路径 &quot;图片标题&quot;)</code></pre>
+<p><img src="/assets/picture/headPicture.png" alt="图片" title="图片标题"></p>
+<h3 id="转义字符"><a href="#转义字符" class="headerlink" title="转义字符"></a>转义字符</h3><h4 id="1-在需要转义的字符前面加上’-39"><a href="#1-在需要转义的字符前面加上’-39" class="headerlink" title="1. 在需要转义的字符前面加上’&#39;"></a>1. 在需要转义的字符前面加上’&#39;</h4><pre><code>例： 这是用来 _演示_ 的 **文本**
+
+    这是用来 \_演示\_ 的 \**文本\**</code></pre>
+<p>这是用来 <em>演示</em> 的 <strong>文本</strong></p>
+<p>这是用来 _演示_ 的 **文本**</p>
+<h3 id="删除线"><a href="#删除线" class="headerlink" title="删除线"></a>删除线</h3><h4 id="1-在文字前后加上两个-‘-’"><a href="#1-在文字前后加上两个-‘-’" class="headerlink" title="1. 在文字前后加上两个 ‘~’"></a>1. 在文字前后加上两个 ‘~’</h4><pre><code>例： ~~删除线~~</code></pre>
+<p>示例效果<br><del>删除线</del></p>
+<h3 id="表格"><a href="#表格" class="headerlink" title="表格"></a>表格</h3><h4 id="1-使用-来分隔不同的单元格，使用-来分隔表头和其他行："><a href="#1-使用-来分隔不同的单元格，使用-来分隔表头和其他行：" class="headerlink" title="1. 使用 | 来分隔不同的单元格，使用 - 来分隔表头和其他行："></a>1. 使用 | 来分隔不同的单元格，使用 - 来分隔表头和其他行：</h4><pre><code>例：
+| name | age |
+| ---- | --- |
+| zero | 24  |
+| liam | 23  |</code></pre>
+<p>示例效果：</p>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>age</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>zero</td>
+<td>24</td>
+</tr>
+<tr>
+<td>liam</td>
+<td>23</td>
+</tr>
+</tbody></table>
+<h4 id="2-表格对其-在表头和其他行的分隔符中加上-‘-’"><a href="#2-表格对其-在表头和其他行的分隔符中加上-‘-’" class="headerlink" title="2. 表格对其, 在表头和其他行的分隔符中加上 ‘:’"></a>2. 表格对其, 在表头和其他行的分隔符中加上 ‘:’</h4><h5 id="‘-—‘-左对齐"><a href="#‘-—‘-左对齐" class="headerlink" title="‘:—‘ 左对齐"></a>‘:—‘ 左对齐</h5><h5 id="‘-–-’-居中"><a href="#‘-–-’-居中" class="headerlink" title="‘:–:’ 居中"></a>‘:–:’ 居中</h5><h5 id="‘—-’-右对齐"><a href="#‘—-’-右对齐" class="headerlink" title="‘—:’ 右对齐"></a>‘—:’ 右对齐</h5><pre><code>例：
+| left | center | right |
+| :--- | :----: | ----: |
+|左    |中     |右     |</code></pre>
+<p>示例效果:</p>
+<table>
+<thead>
+<tr>
+<th align="left">left</th>
+<th align="center">center</th>
+<th align="right">right</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">左</td>
+<td align="center">中</td>
+<td align="right">右</td>
+</tr>
+</tbody></table>
+<h3 id="上标和下标"><a href="#上标和下标" class="headerlink" title="上标和下标"></a>上标和下标</h3><h4 id="1-上标-使用html标签-lt-sup-gt"><a href="#1-上标-使用html标签-lt-sup-gt" class="headerlink" title="1. 上标 使用html标签 &lt;sup&gt;"></a>1. 上标 使用html标签 <code>&lt;sup&gt;</code></h4><pre><code>例： 来个上标 &lt;sup&gt;[1]&lt;/sup&gt;</code></pre>
+<p>示例效果:</p>
+<p>来个上标<sup>[1]</sup></p>
+<h4 id="2-下标-使用html-标签-lt-sub-gt"><a href="#2-下标-使用html-标签-lt-sub-gt" class="headerlink" title="2. 下标  使用html 标签 &lt;sub&gt;"></a>2. 下标  使用html 标签 <code>&lt;sub&gt;</code></h4><pre><code>例: 来个下标 &lt;sub&gt;[2]&lt;/sub&gt;</code></pre>
+<p>示例效果:</p>
+<p>来个下标<sub>[2]</sub></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MarkDown/" rel="tag"># MarkDown</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2016/07/10/%E6%8A%80%E6%9C%AF/java/2016-07-10-jackson%E4%B8%AD%E7%9A%84Feature/" rel="next" title="Jackson 中的 Features">
+      Jackson 中的 Features <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MarkDown-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-number"></span> <span class="nav-text">MarkDown 基本语法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%87%E9%A2%98%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">标题：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9C%A8%E6%96%87%E5%AD%97%E6%A0%87%E9%A2%98%E4%B9%8B%E5%89%8D%E5%8A%A0%E4%B8%8A-%E2%80%9C-%E2%80%9D-%E8%A1%A8%E7%A4%BA%E6%A0%87%E9%A2%98%EF%BC%8C-%E9%80%9A%E8%BF%87-%E2%80%9C-%E2%80%9D-%E7%9A%84%E6%95%B0%E9%87%8F%E8%A1%A8%E7%A4%BA%E6%A0%87%E9%A2%98%E7%AD%89%EF%BC%8C%E4%B8%80%E4%B8%AA%E2%80%9D-%E2%80%9D%E8%A1%A8%E7%A4%BA%E4%B8%80%E7%BA%A7%EF%BC%8C%E4%B8%A4%E4%B8%AA%E8%A1%A8%E7%A4%BA%E4%BA%8C%E7%BA%A7%EF%BC%8C%E6%9C%80%E5%A4%9A%E5%85%AD%E7%BA%A7"><span class="nav-number">1.1.</span> <span class="nav-text">1. 在文字标题之前加上 “#” 表示标题， 通过 “#” 的数量表示标题等，一个”#”表示一级，两个表示二级，最多六级</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E7%BA%A7%E6%A0%87%E9%A2%98"><span class="nav-number"></span> <span class="nav-text">一级标题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E7%BA%A7%E6%A0%87%E9%A2%98"><span class="nav-number"></span> <span class="nav-text">二级标题</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%85%AD%E7%BA%A7%E6%A0%87%E9%A2%98"><span class="nav-number">0.0.0.1.</span> <span class="nav-text">六级标题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%9C%A8%E6%96%87%E5%AD%97%E4%B8%8B%E6%96%B9%E5%8A%A0%E4%B8%8A%E4%B8%A4%E4%B8%AA%E4%BB%A5%E4%B8%8A%E7%9A%84-%E2%80%9C-%E2%80%9C-%E8%A1%A8%E7%A4%BA%E6%A0%87%E9%A2%98-%E7%AD%89%E5%90%8C%E4%BA%8E%E4%BA%8C%E7%BA%A7%E6%A0%87%E9%A2%98-%E2%80%9C-%E2%80%9D"><span class="nav-number">0.1.</span> <span class="nav-text">2. 在文字下方加上两个以上的 “-“ 表示标题, 等同于二级标题 (“##”)</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA%E4%BB%A5%E4%B8%8A-%E2%80%98-%E2%80%98-%E8%A1%A8%E7%A4%BA%E4%BA%8C%E7%BA%A7%E6%A0%87%E9%A2%98"><span class="nav-number"></span> <span class="nav-text">两个以上 ‘-‘ 表示二级标题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E5%9C%A8%E6%96%87%E5%AD%97%E4%B8%8B%E6%96%B9%E5%8A%A0%E4%B8%8A%E4%B8%A4%E4%B8%AA%E4%BB%A5%E4%B8%8A%E7%9A%84-%E2%80%9C-%E2%80%9D-%E8%A1%A8%E7%A4%BA%E6%A0%87%E9%A2%98%EF%BC%8C%E7%AD%89%E5%90%8C%E4%BA%8E%E4%B8%80%E7%BA%A7%E6%A0%87%E9%A2%98-%E2%80%9C-%E2%80%9D"><span class="nav-number">0.1.</span> <span class="nav-text">3. 在文字下方加上两个以上的 “&#x3D;” 表示标题，等同于一级标题 (“#”)</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%A4%E4%B8%AA%E4%BB%A5%E4%B8%8A-%E2%80%98-%E2%80%99-%E8%A1%A8%E7%A4%BA%E4%B8%80%E7%BA%A7%E6%A0%87%E9%A2%98"><span class="nav-number"></span> <span class="nav-text">两个以上 ‘&#x3D;’ 表示一级标题</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B2%97%E4%BD%93"><span class="nav-number">1.</span> <span class="nav-text">粗体</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9C%A8-%E6%96%87%E5%AD%97-%E5%89%8D%E5%90%8E-%E5%8A%A0%E4%B8%8A-%E4%B8%A4%E4%B8%AA-%E2%80%98-%E2%80%99-%E6%88%96-%E2%80%98-%E2%80%99"><span class="nav-number">1.1.</span> <span class="nav-text">1. 在 文字 前后 加上 两个 ‘_’ 或 ‘*’</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%9C%E4%BD%93"><span class="nav-number">2.</span> <span class="nav-text">斜体</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9C%A8%E6%96%87%E5%AD%97%E5%89%8D%E5%90%8E%E5%8A%A0%E4%B8%8A%E4%B8%80%E4%B8%AA-%E2%80%98-%E2%80%99-%E6%88%96-%E2%80%98-%E2%80%99"><span class="nav-number">2.1.</span> <span class="nav-text">1. 在文字前后加上一个 ‘_’ 或 ‘*’</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B2%97%E6%96%9C%E4%BD%93"><span class="nav-number">3.</span> <span class="nav-text">粗斜体</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9C%A8%E6%96%87%E5%AD%97%E5%89%8D%E5%90%8E%E5%8A%A0%E4%B8%8A%E4%B8%89%E4%B8%AA-%E2%80%98-%E2%80%99-%E6%88%96-%E2%80%98-%E2%80%99"><span class="nav-number">3.1.</span> <span class="nav-text">1. 在文字前后加上三个 ‘_’ 或 ‘*’</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%9D%97"><span class="nav-number">4.</span> <span class="nav-text">代码块</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E8%A1%8C%E9%A6%96%E5%8A%A0%E4%B8%8A%E5%9B%9B%E4%B8%AA-Tab-%E6%88%96-%E5%9B%9B%E4%B8%AA%E7%A9%BA%E6%A0%BC-%E4%BB%A3%E7%A0%81%E5%9D%97%E8%87%AA%E5%B8%A6%E6%BB%9A%E5%8A%A8%E6%9D%A1%E6%95%88%E6%9E%9C"><span class="nav-number">4.1.</span> <span class="nav-text">1. 行首加上四个 Tab 或 四个空格 (代码块自带滚动条效果)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8C%BA%E5%9D%97%E5%BC%95%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">区块引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%96%87%E5%AD%97%E5%89%8D%E9%9D%A2%E5%8A%A0%E4%B8%8A-%E2%80%9C-gt-%E2%80%9D"><span class="nav-number">5.1.</span> <span class="nav-text">1. 文字前面加上 “&gt;”</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%8C%BA%E5%9D%97%E5%BC%95%E7%94%A8%E5%8F%AF%E4%BB%A5%E5%B5%8C%E5%A5%97%E4%BD%BF%E7%94%A8"><span class="nav-number">5.2.</span> <span class="nav-text">2. 区块引用可以嵌套使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%89%B2%E7%BA%BF"><span class="nav-number">6.</span> <span class="nav-text">分割线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%89%E4%B8%AA%E4%BB%A5%E4%B8%8A%E2%80%9D-%E2%80%9C"><span class="nav-number">6.1.</span> <span class="nav-text">1. 三个以上”-“</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%B8%89%E4%B8%AA%E4%BB%A5%E4%B8%8A%E2%80%9D-%E2%80%9D"><span class="nav-number">6.2.</span> <span class="nav-text">2. 三个以上”*”</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%9D%97%E5%92%8C%E8%AF%AD%E6%B3%95%E9%AB%98%E4%BA%AE"><span class="nav-number">7.</span> <span class="nav-text">代码块和语法高亮</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BB%A3%E7%A0%81%E5%9D%97%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E5%A6%82%E4%B8%8B%EF%BC%9A"><span class="nav-number">7.1.</span> <span class="nav-text">1. 代码块使用方法如下：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%BB%A3%E7%A0%81%E5%9D%97%E8%AF%AD%E6%B3%95%E9%AB%98%E4%BA%AE-%E5%9C%A8-%E2%80%9C-%E2%80%9D-%E5%90%8E%E5%8A%A0%E4%B8%8A-language"><span class="nav-number">7.2.</span> <span class="nav-text">2. 代码块语法高亮 在 “&#96;&#96;&#96;” 后加上 language</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E9%AB%98%E4%BA%AE%E9%83%A8%E5%88%86%E6%96%87%E5%AD%97"><span class="nav-number">7.3.</span> <span class="nav-text">3. 高亮部分文字</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B6%85%E9%93%BE%E6%8E%A5"><span class="nav-number">8.</span> <span class="nav-text">超链接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E2%80%9C-%E9%93%BE%E6%8E%A5%E6%98%BE%E7%A4%BA%E6%96%87%E5%AD%97-url-%E2%80%9C%E8%B6%85%E9%93%BE%E6%8E%A5%E6%A0%87%E9%A2%98%E2%80%9D-%E2%80%9C-url-%E5%92%8C%E6%A0%87%E9%A2%98%E4%B9%8B%E9%97%B4%E6%9C%89%E7%A9%BA%E6%A0%BC"><span class="nav-number">8.1.</span> <span class="nav-text">1. “[链接显示文字](url “超链接标题”)“ url 和标题之间有空格</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E6%8C%87%E5%90%91%E6%9C%AC%E5%9C%B0%E6%96%87%E4%BB%B6%E7%9A%84%E9%93%BE%E6%8E%A5"><span class="nav-number">8.2.</span> <span class="nav-text">2. 指向本地文件的链接</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%BE%E7%89%87%E5%BC%95%E7%94%A8"><span class="nav-number">9.</span> <span class="nav-text">图片引用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9B%BE%E7%89%87%E5%BC%95%E7%94%A8%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95%E5%A6%82%E4%B8%8B"><span class="nav-number">9.1.</span> <span class="nav-text">1.  图片引用使用方法如下</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BD%AC%E4%B9%89%E5%AD%97%E7%AC%A6"><span class="nav-number">10.</span> <span class="nav-text">转义字符</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9C%A8%E9%9C%80%E8%A6%81%E8%BD%AC%E4%B9%89%E7%9A%84%E5%AD%97%E7%AC%A6%E5%89%8D%E9%9D%A2%E5%8A%A0%E4%B8%8A%E2%80%99-39"><span class="nav-number">10.1.</span> <span class="nav-text">1. 在需要转义的字符前面加上’&#39;</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4%E7%BA%BF"><span class="nav-number">11.</span> <span class="nav-text">删除线</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%9C%A8%E6%96%87%E5%AD%97%E5%89%8D%E5%90%8E%E5%8A%A0%E4%B8%8A%E4%B8%A4%E4%B8%AA-%E2%80%98-%E2%80%99"><span class="nav-number">11.1.</span> <span class="nav-text">1. 在文字前后加上两个 ‘~’</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E6%A0%BC"><span class="nav-number">12.</span> <span class="nav-text">表格</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%BD%BF%E7%94%A8-%E6%9D%A5%E5%88%86%E9%9A%94%E4%B8%8D%E5%90%8C%E7%9A%84%E5%8D%95%E5%85%83%E6%A0%BC%EF%BC%8C%E4%BD%BF%E7%94%A8-%E6%9D%A5%E5%88%86%E9%9A%94%E8%A1%A8%E5%A4%B4%E5%92%8C%E5%85%B6%E4%BB%96%E8%A1%8C%EF%BC%9A"><span class="nav-number">12.1.</span> <span class="nav-text">1. 使用 | 来分隔不同的单元格，使用 - 来分隔表头和其他行：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E8%A1%A8%E6%A0%BC%E5%AF%B9%E5%85%B6-%E5%9C%A8%E8%A1%A8%E5%A4%B4%E5%92%8C%E5%85%B6%E4%BB%96%E8%A1%8C%E7%9A%84%E5%88%86%E9%9A%94%E7%AC%A6%E4%B8%AD%E5%8A%A0%E4%B8%8A-%E2%80%98-%E2%80%99"><span class="nav-number">12.2.</span> <span class="nav-text">2. 表格对其, 在表头和其他行的分隔符中加上 ‘:’</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%80%98-%E2%80%94%E2%80%98-%E5%B7%A6%E5%AF%B9%E9%BD%90"><span class="nav-number">12.2.1.</span> <span class="nav-text">‘:—‘ 左对齐</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%80%98-%E2%80%93-%E2%80%99-%E5%B1%85%E4%B8%AD"><span class="nav-number">12.2.2.</span> <span class="nav-text">‘:–:’ 居中</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E2%80%98%E2%80%94-%E2%80%99-%E5%8F%B3%E5%AF%B9%E9%BD%90"><span class="nav-number">12.2.3.</span> <span class="nav-text">‘—:’ 右对齐</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8A%E6%A0%87%E5%92%8C%E4%B8%8B%E6%A0%87"><span class="nav-number">13.</span> <span class="nav-text">上标和下标</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%8A%E6%A0%87-%E4%BD%BF%E7%94%A8html%E6%A0%87%E7%AD%BE-lt-sup-gt"><span class="nav-number">13.1.</span> <span class="nav-text">1. 上标 使用html标签 &lt;sup&gt;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%B8%8B%E6%A0%87-%E4%BD%BF%E7%94%A8html-%E6%A0%87%E7%AD%BE-lt-sub-gt"><span class="nav-number">13.2.</span> <span class="nav-text">2. 下标  使用html 标签 &lt;sub&gt;</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Liam Chen</p>
+  <div class="site-description" itemprop="description">关于技术与生活</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">58</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">42</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Liam Chen</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/gh/fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
