@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://summerbuger.github.io/assets/picture/LongAdder.method.list.jpg">
 <meta property="og:image" content="https://summerbuger.github.io/assets/picture/alibaba.java.guide.suggestion.LongAdder.jpg">
 <meta property="article:published_time" content="2020-06-26T13:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-10T16:38:22.990Z">
+<meta property="article:modified_time" content="2020-11-02T01:49:32.896Z">
 <meta property="article:author" content="Liam Chen">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="J.U.C">
@@ -235,7 +235,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-08-11 00:38:22" itemprop="dateModified" datetime="2020-08-11T00:38:22+08:00">2020-08-11</time>
+                <time title="修改时间：2020-11-02 09:49:32" itemprop="dateModified" datetime="2020-11-02T09:49:32+08:00">2020-11-02</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -379,7 +379,7 @@
 <td>返回锁存器的计数值</td>
 </tr>
 </tbody></table>
-<p>从上面的方法列表可以看出，<code>CountDownLatch(锁存器)</code> 维护了一个计数值，可以让当前线程阻塞等待，直到计数值减为 0，这个数值也就是需要等待的线程的数量；通过这个同步工具类可以做到让一个或一组线程等待其他线程完成之后在进行在进行下一步的操作</p>
+<p>从上面的方法列表可以看出，<code>CountDownLatch(锁存器)</code> 维护了一个计数值，可以让当前线程阻塞等待，直到计数值减为 0，这个数值也就是需要等待的线程的数量；通过这个同步工具类可以做到让一个或一组线程等待其他线程完成之后再进行下一步的操作</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountDownLatchDemo</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> threadCount = <span class="number">5</span>;</span><br><span class="line">    CountDownLatch waitSignal = <span class="keyword">new</span> CountDownLatch(threadCount);</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; threadCount; i++) &#123;</span><br><span class="line">      <span class="keyword">new</span> Thread(<span class="keyword">new</span> WaitedTask(<span class="string">&quot;waited-thread-&quot;</span> + i, waitSignal)).start();</span><br><span class="line">    &#125;</span><br><span class="line">    waitSignal.await();</span><br><span class="line">    System.out.println(<span class="string">&quot;主线程等待其他线程执行完毕后, 执行后续动作&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">WaitedTask</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> CountDownLatch countDownLatch;</span><br><span class="line"></span><br><span class="line">    WaitedTask(String name, CountDownLatch countDownLatch) &#123;</span><br><span class="line">      <span class="keyword">this</span>.name = name;</span><br><span class="line">      <span class="keyword">this</span>.countDownLatch = countDownLatch;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 开始执行操作&quot;</span>);</span><br><span class="line">        <span class="keyword">int</span> timeVal = ThreadLocalRandom.current().nextInt(<span class="number">5</span>);</span><br><span class="line">        TimeUnit.SECONDS.sleep(timeVal);</span><br><span class="line">        System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 操作完成, 达到等待点&quot;</span>);</span><br><span class="line">        countDownLatch.countDown();</span><br><span class="line">      &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <pre><code>    线程 waited-thread-0 开始执行操作
@@ -412,7 +412,131 @@
       at com.liam.learn.CountDownLatchDemo$WaitedTask.run(CountDownLatchDemo.java:43)
       at java.lang.Thread.run(Thread.java:748)</code></pre>
 <p>结果很遗憾，一个线程抛出异常之后，主线程陷入了阻塞等待的状态，没办法继续执行后续操作~ 因为 <code>CountDownLatch(锁存器)</code> 的计数值始终不能减为 0，<code>CountDownLatch#await()</code> 方法一直处于一个阻塞状态；</p>
-<h2 id="CyclicBarrier"><a href="#CyclicBarrier" class="headerlink" title="CyclicBarrier"></a>CyclicBarrier</h2><h2 id="CompletionService"><a href="#CompletionService" class="headerlink" title="CompletionService"></a>CompletionService</h2><h2 id="ThreadLocalRandom"><a href="#ThreadLocalRandom" class="headerlink" title="ThreadLocalRandom"></a>ThreadLocalRandom</h2><h2 id="TimeUnit"><a href="#TimeUnit" class="headerlink" title="TimeUnit"></a>TimeUnit</h2><h2 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h2><h3 id="ReentrantLock"><a href="#ReentrantLock" class="headerlink" title="ReentrantLock"></a>ReentrantLock</h3><h3 id="ReentrantReadWriteLock"><a href="#ReentrantReadWriteLock" class="headerlink" title="ReentrantReadWriteLock"></a>ReentrantReadWriteLock</h3><h3 id="Condition"><a href="#Condition" class="headerlink" title="Condition"></a>Condition</h3><h3 id="LockSupport"><a href="#LockSupport" class="headerlink" title="LockSupport"></a>LockSupport</h3>
+<pre><code>CountDownLatch 的不足：
+CountDownLatch 维护的计数值被减少后无法恢复，只能使用一次</code></pre>
+<h2 id="CyclicBarrier（回环栅栏）"><a href="#CyclicBarrier（回环栅栏）" class="headerlink" title="CyclicBarrier（回环栅栏）"></a>CyclicBarrier（回环栅栏）</h2><p>还是从工具类开始看什么是 <code>CyclicBarrier(回环栅栏)</code></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">A synchronization aid that allows a set of threads to all wait for each other to reach a common barrier point. </span><br><span class="line">CyclicBarriers are useful in programs involving a fixed sized party of threads that must occasionally wait for each other. </span><br><span class="line">The barrier is called `cyclic` because it can be re-used after the waiting threads are released.</span><br></pre></td></tr></table></figure>
+
+<p>译文如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CyclicBarrier 也是一个并发工具，目的在于让一组固定数量的线程相互等待，直到所有线程都到达一个栅栏点；</span><br><span class="line">栅栏之所以称为回环栅栏是因为等所有等待的线程都被释放之后，栅栏的状态将被重置</span><br></pre></td></tr></table></figure>
+
+<p>下面看看方法列表</p>
+<table>
+<thead>
+<tr>
+<th>方法签名</th>
+<th>返回值</th>
+<th>方法说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CyclicBarrier(int parties, Runnable barrierAction)</td>
+<td>CyclicBarrier</td>
+<td>构造方法，构造一个回环栅栏，并指定参与线程数量和栅栏函数，当等待跳过栅栏的线程数降为0 的时候，会触发栅栏函数的执行</td>
+</tr>
+<tr>
+<td>CyclicBarrier(int parties)</td>
+<td>CyclicBarrier</td>
+<td>构造方法，构造一个回环栅栏，并指定参与线程数量，等待跳过栅栏的线程数降为0 的时候，进行后续操作</td>
+</tr>
+<tr>
+<td>countDown()</td>
+<td>void</td>
+<td>对锁存器的计数值进行递减，线程安全，如果计数值减到了 0 则释放所有等待的线程</td>
+</tr>
+<tr>
+<td>await() throws InterruptedException</td>
+<td>void</td>
+<td>阻塞当前线程进入等待状态，直至回环栅栏的所有参与线程都调用了此方法，或者参与栅栏的线程被阻断抛出异常</td>
+</tr>
+<tr>
+<td>await(long timeout, TimeUnit unit) throws InterruptedException</td>
+<td>void</td>
+<td>阻塞当前线程进入等待状态，直至回环栅栏的所有参与线程都调用了此方法，或者参与栅栏的线程被阻断抛出异常，或者超过了指定的等待时间</td>
+</tr>
+<tr>
+<td>getNumberWaiting()</td>
+<td>int</td>
+<td>获取当前正在等待跳过栅栏的参与方的数量</td>
+</tr>
+<tr>
+<td>getParties()</td>
+<td>int</td>
+<td>获取需要跳过栅栏的参与方的数量</td>
+</tr>
+<tr>
+<td>reset()</td>
+<td>void</td>
+<td>将栅栏置为初始化状态</td>
+</tr>
+</tbody></table>
+<p>下面从代码示例中，我们来看看 <code>CyclicBarrier</code> 的使用场景</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CyclicBarrierDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> BrokenBarrierException, InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> threadCount = <span class="number">3</span>;</span><br><span class="line">        CyclicBarrier cyclicBarrier = <span class="keyword">new</span> CyclicBarrier(threadCount + <span class="number">1</span>, () -&gt; System.out.println(<span class="string">&quot;所有线程都到达了等待点，可以进行下一步操作了~&quot;</span>));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; threadCount; i++) &#123;</span><br><span class="line">            <span class="keyword">new</span> Thread(<span class="keyword">new</span> WaitedTask(<span class="string">&quot;first-group-thread-&quot;</span> + i, cyclicBarrier)).start();</span><br><span class="line">        &#125;</span><br><span class="line">        cyclicBarrier.await();</span><br><span class="line">        System.out.println(<span class="string">&quot;主线程等待第一组其他线程操作结束，执行下一步操作&quot;</span>);</span><br><span class="line">        ThreadLocalRandom threadLocalRandom = ThreadLocalRandom.current();</span><br><span class="line">        <span class="keyword">int</span> randomVal = threadLocalRandom.nextInt(<span class="number">10</span>);</span><br><span class="line">        TimeUnit.SECONDS.sleep(randomVal);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; threadCount; i++) &#123;</span><br><span class="line">            <span class="keyword">new</span> Thread(<span class="keyword">new</span> WaitedTask(<span class="string">&quot;second-group-thread-&quot;</span> + i, cyclicBarrier)).start();</span><br><span class="line">        &#125;</span><br><span class="line">        cyclicBarrier.await();</span><br><span class="line">        System.out.println(<span class="string">&quot;主线程等待第二组其他线程操作结束，执行下一步操作&quot;</span>);</span><br><span class="line">        randomVal = threadLocalRandom.nextInt(<span class="number">10</span>);</span><br><span class="line">        TimeUnit.SECONDS.sleep(randomVal);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">WaitedTask</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line">        <span class="keyword">private</span> CyclicBarrier cyclicBarrier;</span><br><span class="line"></span><br><span class="line">        WaitedTask(String name, CyclicBarrier cyclicBarrier) &#123;</span><br><span class="line">            <span class="keyword">this</span>.name = name;</span><br><span class="line">            <span class="keyword">this</span>.cyclicBarrier = cyclicBarrier;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 开始执行操作&quot;</span>);</span><br><span class="line">                <span class="keyword">int</span> timeVal = ThreadLocalRandom.current().nextInt(<span class="number">5</span>);</span><br><span class="line">                TimeUnit.SECONDS.sleep(timeVal);</span><br><span class="line">                System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 操作完成, 达到等待点&quot;</span>);</span><br><span class="line">                cyclicBarrier.await();</span><br><span class="line">                timeVal = ThreadLocalRandom.current().nextInt(<span class="number">5</span>);</span><br><span class="line">                System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 等待其他线程结束，执行其他操作~&quot;</span>);</span><br><span class="line">                TimeUnit.SECONDS.sleep(timeVal);</span><br><span class="line">                System.out.println(<span class="string">&quot;线程 &quot;</span> + name + <span class="string">&quot; 执行其他操作完毕&quot;</span>);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException | BrokenBarrierException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<pre><code>    线程 first-group-thread-0 开始执行操作
+    线程 first-group-thread-2 开始执行操作
+    线程 first-group-thread-1 开始执行操作
+    线程 first-group-thread-2 操作完成, 达到等待点
+    线程 first-group-thread-1 操作完成, 达到等待点
+    线程 first-group-thread-0 操作完成, 达到等待点
+    所有线程都到达了等待点，可以进行下一步操作了~
+    线程 first-group-thread-0 等待其他线程结束，执行其他操作~
+    主线程等待第一组其他线程操作结束，执行下一步操作
+    线程 first-group-thread-2 等待其他线程结束，执行其他操作~
+    线程 first-group-thread-1 等待其他线程结束，执行其他操作~
+    线程 first-group-thread-1 执行其他操作完毕
+    线程 first-group-thread-0 执行其他操作完毕
+    线程 first-group-thread-2 执行其他操作完毕
+    线程 second-group-thread-0 开始执行操作
+    线程 second-group-thread-0 操作完成, 达到等待点
+    线程 second-group-thread-1 开始执行操作
+    线程 second-group-thread-2 开始执行操作
+    线程 second-group-thread-1 操作完成, 达到等待点
+    线程 second-group-thread-2 操作完成, 达到等待点
+    所有线程都到达了等待点，可以进行下一步操作了~
+    线程 second-group-thread-2 等待其他线程结束，执行其他操作~
+    主线程等待第二组其他线程操作结束，执行下一步操作
+    线程 second-group-thread-0 等待其他线程结束，执行其他操作~
+    线程 second-group-thread-1 等待其他线程结束，执行其他操作~
+    线程 second-group-thread-1 执行其他操作完毕
+    线程 second-group-thread-2 执行其他操作完毕
+    线程 second-group-thread-0 执行其他操作完毕
+
+    Process finished with exit code 0</code></pre>
+<p>从上面这个例子可以看出，<code>CyclicBarrier</code> 的实例被使用了两次，都达到了让一组线程达到一个栅栏点之后再进行后续操作的目的；这里还有一个细节，在 <code>CyclicBarrier</code> 中，我们设置了 <code>barrierAction</code>，这个线程会在最后一个参与线程调用 <code>await()</code> 方法到达栅栏点之后会被触发调用，而我们创建的 <code>CyclicBarrier</code> 指定的参与线程数量是子线程数量加一，主线程也会去等待其他子线程达到栅栏点；所以如果主线程需要等待其他子线程到达栅栏点，我们可以将主线程也作为 <code>CyclicBarrier</code> 的参与线程，如果主线程不需要等待子线程达到栅栏点，可以使用 <code>barrierAction</code> 在所有子线程达到栅栏点之后进行一些操作。</p>
+<h2 id="Semaphore-信号量"><a href="#Semaphore-信号量" class="headerlink" title="Semaphore 信号量"></a>Semaphore 信号量</h2><p><code>Semaphore</code> 工具类见名知意，就是一个维护了一组信号量的工具类，它提供了 <code>acquire()</code> 方法，用于获取许可，在获取到许可之前会一致阻塞；它还提供了 <code>release()</code> 方法去释放已经获取了的许可；这些许可也只是一个计数而不是实际存在的许可对象；<code>Semaphore</code> 工具类一般用于控制一组线程对一定数量的资源的访问控制；</p>
+<p>下面是方法列表</p>
+<table>
+<thead>
+<tr>
+<th>方法签名</th>
+<th>返回值</th>
+<th>方法说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Semaphore(int permits)</td>
+<td>Semaphore</td>
+<td>构造方法，构造一个信号量工具类，permits 是许可数量，可以为负数，为负数是在获取许可之前必须先释放许可</td>
+</tr>
+<tr>
+<td>Semaphore(int permits, boolean fair)</td>
+<td>Semaphore</td>
+<td>构造方法，构造一个信号量工具类；<br/>permits 是许可数量，可以为负数，为负数是在获取许可之前必须先释放许可<br/>fair 标识获取许可的任务是先进先出的公平模式，还是非公平模式</td>
+</tr>
+<tr>
+<td>acquire() throws InterruptedException</td>
+<td>void</td>
+<td>获取单个信号量许可的方法，没有获取到之前一直阻塞，如果线程被中断，将抛出 java.lang.InterruptedException 异常</td>
+</tr>
+<tr>
+<td>acquire(int permits) throws InterruptedException</td>
+<td>void</td>
+<td>获取信号量的一个或多个许可的方法，没有获取到之前一直阻塞，如果线程被中断，将抛出 java.lang.InterruptedException 异常</td>
+</tr>
+</tbody></table>
+<h2 id="CompletionService"><a href="#CompletionService" class="headerlink" title="CompletionService"></a>CompletionService</h2><p>在上面讲到的并发工具类的使用的时候，我们讲到了使用 <code>CountDownLatch</code>、<code>CyclicBarrier</code>、<code>Semaphore</code> 来实现等待一组任务全完成之后的示例</p>
+<h2 id="ThreadLocalRandom"><a href="#ThreadLocalRandom" class="headerlink" title="ThreadLocalRandom"></a>ThreadLocalRandom</h2><h2 id="TimeUnit"><a href="#TimeUnit" class="headerlink" title="TimeUnit"></a>TimeUnit</h2><h2 id="Lock"><a href="#Lock" class="headerlink" title="Lock"></a>Lock</h2><h3 id="ReentrantLock"><a href="#ReentrantLock" class="headerlink" title="ReentrantLock"></a>ReentrantLock</h3><h3 id="ReentrantReadWriteLock"><a href="#ReentrantReadWriteLock" class="headerlink" title="ReentrantReadWriteLock"></a>ReentrantReadWriteLock</h3><h3 id="Condition"><a href="#Condition" class="headerlink" title="Condition"></a>Condition</h3><h3 id="LockSupport"><a href="#LockSupport" class="headerlink" title="LockSupport"></a>LockSupport</h3>
     </div>
 
     
@@ -496,7 +620,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#J-U-C-%E5%8C%85%E4%B8%AD%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">J.U.C 包中的工具类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#atomic-%E5%8C%85%E4%B8%AD%E7%9A%84%E6%94%AF%E6%8C%81%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E7%9A%84%E7%B1%BB"><span class="nav-number">1.1.</span> <span class="nav-text">atomic 包中的支持原子操作的类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E-AtomicInteger-%E5%BC%80%E5%A7%8B%E7%9C%8B-Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-number">1.1.1.</span> <span class="nav-text">从 AtomicInteger 开始看 Atomic 工具类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84-ABA-%E9%97%AE%E9%A2%98%E5%8F%8A%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="nav-number">1.1.2.</span> <span class="nav-text">Atomic 工具类的 ABA 问题及如何解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E8%87%AA%E6%97%8B%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98"><span class="nav-number">1.1.3.</span> <span class="nav-text">Atomic 工具类的自旋性能问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#LongAdder-%E7%AD%89%E5%B7%A5%E5%85%B7%E7%B1%BB%E5%88%86%E6%AE%B5%E6%93%8D%E4%BD%9C%E9%99%8D%E4%BD%8E%E7%AB%9E%E4%BA%89%E7%83%AD%E5%BA%A6"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">LongAdder 等工具类分段操作降低竞争热度</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CountDownLatch-%E9%94%81%E5%AD%98%E5%99%A8"><span class="nav-number">1.2.</span> <span class="nav-text">CountDownLatch(锁存器)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CyclicBarrier"><span class="nav-number">1.3.</span> <span class="nav-text">CyclicBarrier</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CompletionService"><span class="nav-number">1.4.</span> <span class="nav-text">CompletionService</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadLocalRandom"><span class="nav-number">1.5.</span> <span class="nav-text">ThreadLocalRandom</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TimeUnit"><span class="nav-number">1.6.</span> <span class="nav-text">TimeUnit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lock"><span class="nav-number">1.7.</span> <span class="nav-text">Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrantLock"><span class="nav-number">1.7.1.</span> <span class="nav-text">ReentrantLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrantReadWriteLock"><span class="nav-number">1.7.2.</span> <span class="nav-text">ReentrantReadWriteLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Condition"><span class="nav-number">1.7.3.</span> <span class="nav-text">Condition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LockSupport"><span class="nav-number">1.7.4.</span> <span class="nav-text">LockSupport</span></a></li></ol></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#J-U-C-%E5%8C%85%E4%B8%AD%E7%9A%84%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">J.U.C 包中的工具类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#atomic-%E5%8C%85%E4%B8%AD%E7%9A%84%E6%94%AF%E6%8C%81%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C%E7%9A%84%E7%B1%BB"><span class="nav-number">1.1.</span> <span class="nav-text">atomic 包中的支持原子操作的类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%8E-AtomicInteger-%E5%BC%80%E5%A7%8B%E7%9C%8B-Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="nav-number">1.1.1.</span> <span class="nav-text">从 AtomicInteger 开始看 Atomic 工具类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84-ABA-%E9%97%AE%E9%A2%98%E5%8F%8A%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="nav-number">1.1.2.</span> <span class="nav-text">Atomic 工具类的 ABA 问题及如何解决</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Atomic-%E5%B7%A5%E5%85%B7%E7%B1%BB%E7%9A%84%E8%87%AA%E6%97%8B%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98"><span class="nav-number">1.1.3.</span> <span class="nav-text">Atomic 工具类的自旋性能问题</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#LongAdder-%E7%AD%89%E5%B7%A5%E5%85%B7%E7%B1%BB%E5%88%86%E6%AE%B5%E6%93%8D%E4%BD%9C%E9%99%8D%E4%BD%8E%E7%AB%9E%E4%BA%89%E7%83%AD%E5%BA%A6"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">LongAdder 等工具类分段操作降低竞争热度</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CountDownLatch-%E9%94%81%E5%AD%98%E5%99%A8"><span class="nav-number">1.2.</span> <span class="nav-text">CountDownLatch(锁存器)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CyclicBarrier%EF%BC%88%E5%9B%9E%E7%8E%AF%E6%A0%85%E6%A0%8F%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">CyclicBarrier（回环栅栏）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Semaphore-%E4%BF%A1%E5%8F%B7%E9%87%8F"><span class="nav-number">1.4.</span> <span class="nav-text">Semaphore 信号量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CompletionService"><span class="nav-number">1.5.</span> <span class="nav-text">CompletionService</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ThreadLocalRandom"><span class="nav-number">1.6.</span> <span class="nav-text">ThreadLocalRandom</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TimeUnit"><span class="nav-number">1.7.</span> <span class="nav-text">TimeUnit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Lock"><span class="nav-number">1.8.</span> <span class="nav-text">Lock</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrantLock"><span class="nav-number">1.8.1.</span> <span class="nav-text">ReentrantLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ReentrantReadWriteLock"><span class="nav-number">1.8.2.</span> <span class="nav-text">ReentrantReadWriteLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Condition"><span class="nav-number">1.8.3.</span> <span class="nav-text">Condition</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LockSupport"><span class="nav-number">1.8.4.</span> <span class="nav-text">LockSupport</span></a></li></ol></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
